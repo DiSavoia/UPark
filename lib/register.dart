@@ -34,6 +34,13 @@ class RegisterPage extends StatelessWidget {
                     color: primaryColor,
                   ),
                 ),
+                const Text(
+                  'Registrarse',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 32),
                 TextField(
                   controller: usernameController,
