@@ -27,7 +27,14 @@ class LoginPage extends StatelessWidget {
                   color: primaryColor,
                 ),
               ),
-              const SizedBox(height: 48),
+              const Text(
+                'Iniciar Sesión',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 40),
               TextField(
                 controller: emailController,
                 decoration: const InputDecoration(
