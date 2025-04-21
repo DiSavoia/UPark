@@ -38,9 +38,9 @@ class InicioPage extends StatelessWidget {
                   child: const Text('Iniciar Sesión'),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               const Text('o'),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
