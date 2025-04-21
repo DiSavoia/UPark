@@ -24,7 +24,14 @@ class InicioPage extends StatelessWidget {
                   color: primaryColor,
                 ),
               ),
-              const SizedBox(height: 48),
+              const Text(
+                '¡Bienvenido!',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
