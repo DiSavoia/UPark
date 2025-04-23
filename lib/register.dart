@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MaterialApp(home: RegisterPage()));
-
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
 
@@ -19,6 +17,7 @@ class RegisterPage extends StatelessWidget {
     final isManager = ValueNotifier<bool>(false);
 
     return Scaffold(
+      appBar: AppBar(),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Center(
@@ -26,13 +25,9 @@ class RegisterPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'UPark',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
+                Image.asset(
+                  'assets/logo_upark_a.png',
+                  height: 125,
                 ),
                 const Text(
                   'Registrarse',
