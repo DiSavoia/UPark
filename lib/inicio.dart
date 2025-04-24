@@ -36,7 +36,7 @@ class InicioPage extends StatelessWidget {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () {
-                    print('Ir a Iniciar Sesión');
+                    Navigator.pushNamed(context, '/login');
                   },
                   child: const Text('Iniciar Sesión'),
                 ),
@@ -53,7 +53,7 @@ class InicioPage extends StatelessWidget {
                     side: BorderSide.none,
                   ),
                   onPressed: () {
-                    print('Ir a Registro');
+                    Navigator.pushNamed(context, '/register');
                   },
                   child: const Text('Registrate'),
                 ),

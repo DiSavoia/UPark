@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:upark/inicio.dart';
 import 'login.dart';
 import 'register.dart';
 import 'olvide_contraseña.dart';
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const MyHomePage(title: 'UPark'),
+        '/': (context) => const InicioPage(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/ChangePassword': (context) => const ChangePasswordPage(),
