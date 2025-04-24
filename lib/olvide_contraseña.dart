@@ -14,6 +14,7 @@ class ChangePasswordPage extends StatelessWidget {
     final confirmNewPasswordController = TextEditingController();
 
     return Scaffold(
+      appBar: AppBar(),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Center(

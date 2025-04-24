@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MaterialApp(home: LoginPage()));
+//void main() => runApp(const MaterialApp(home: LoginPage()));
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -61,6 +61,7 @@ class LoginPage extends StatelessWidget {
                     backgroundColor: primaryColor,
                   ),
                   onPressed: () {
+                    Navigator.pushNamed(context, '/ChangePassword');
                     print('Olvidó su contraseña');
                   },
                   child: const Text('¿Olvidaste tu contraseña?'),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'register.dart';
+import 'olvide_contraseña.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const MyHomePage(title: 'UPark'),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
+        '/ChangePassword': (context) => const ChangePasswordPage(),
       },
     );
   }
