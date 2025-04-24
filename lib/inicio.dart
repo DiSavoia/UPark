@@ -16,13 +16,9 @@ class InicioPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'UPark',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
+              Image.asset(
+                'assets/logo_upark_a.png',
+                height: 125,
               ),
               const Text(
                 '¡Bienvenido!',
