@@ -70,6 +70,7 @@ class LoginPage extends StatelessWidget {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () {
+                    Navigator.pushNamed(context, '/home');
                     print('Presionó Continuar');
                   },
                   child: const Text('Continuar'),

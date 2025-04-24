@@ -133,6 +133,7 @@ class RegisterPage extends StatelessWidget {
                         print('Teléfono: ${phoneController.text}');
                         print('Email: $email');
                         print('Es gerente: ${isManager.value}');
+                        Navigator.pushNamed(context, '/home');
                       }
                     },
                     child: const Text('Registrarse'),
