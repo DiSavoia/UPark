@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MaterialApp(home: InicioPage()));
+void main() => runApp(const MaterialApp(home: StartPage()));
 
-class InicioPage extends StatelessWidget {
-  const InicioPage({super.key});
+class StartPage extends StatelessWidget {
+  const StartPage({super.key});
 
   static const primaryColor = Color(0xFF1E90FF);
 

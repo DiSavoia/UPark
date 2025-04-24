@@ -55,7 +55,7 @@ class LoginPage extends StatelessWidget {
                     backgroundColor: primaryColor,
                   ),
                   onPressed: () {
-                    Navigator.pushNamed(context, '/ChangePassword');
+                    Navigator.pushNamed(context, '/changePassword');
                     print('Olvidó su contraseña');
                   },
                   child: const Text('¿Olvidaste tu contraseña?'),
