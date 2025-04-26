@@ -4,6 +4,7 @@ import 'home.dart';
 import 'login.dart';
 import 'register.dart';
 import 'changePassword.dart';
+import 'osm.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,7 +28,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/changePassword': (context) => const ChangePasswordPage(),
-        '/home': (context) => const HomePage()
+        '/home': (context) => const HomePage(),
+        '/osm': (context) => const MapView(),
       },
     );
   }
