@@ -8,8 +8,11 @@ CREATE TABLE IF NOT EXISTS users (
   first_name     TEXT,
   last_name      TEXT,
   phone          TEXT,
-  email          TEXT,
-  is_manager     BOOLEAN     DEFAULT FALSE
+  email          TEXT        UNIQUE,
+  is_manager     BOOLEAN     DEFAULT FALSE,
+  reset_token    TEXT,
+  reset_token_expires TIMESTAMP,
+  reset_password_hash   TEXT
 );
 
 -- 2. Parkings

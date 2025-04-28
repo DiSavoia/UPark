@@ -1,11 +1,30 @@
-const express = require('express');
-const bcrypt  = require('bcrypt');
-const pool    = require('../db');
-const router  = express.Router();
+const express = require("express");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const pool = require("../db");
+const router = express.Router();
+
+// Configure nodemailer with Gmail
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER, // your Gmail
+    pass: process.env.EMAIL_PASS, // your Gmail password or App Password
+  },
+});
 
 // Register
-router.post('/register', async (req, res) => {
-  const { username, password, first_name, last_name, phone, email, is_manager } = req.body;
+router.post("/register", async (req, res) => {
+  const {
+    username,
+    password,
+    first_name,
+    last_name,
+    phone,
+    email,
+    is_manager,
+  } = req.body;
   try {
     const hash = await bcrypt.hash(password, 10);
     const { rows } = await pool.query(
@@ -19,19 +38,26 @@ router.post('/register', async (req, res) => {
     res.json({ success: true, userId: rows[0].id });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: "Server error" });
   }
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const { rows } = await pool.query(`SELECT * FROM users WHERE username=$1`, [username]);
-    if (!rows.length) return res.status(400).json({ success: false, error: 'Invalid credentials' });
+    const { rows } = await pool.query(`SELECT * FROM users WHERE username=$1`, [
+      username,
+    ]);
+    if (!rows.length)
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid credentials" });
     const user = rows[0];
-    if (!await bcrypt.compare(password, user.password))
-      return res.status(400).json({ success: false, error: 'Invalid credentials' });
+    if (!(await bcrypt.compare(password, user.password)))
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid credentials" });
     // Strip password before sending back
     delete user.password;
     res.json({ success: true, user });
@@ -42,15 +68,156 @@ router.post('/login', async (req, res) => {
 });
 
 // Change password
-router.post('/change-password', async (req, res) => {
+router.post("/change-password", async (req, res) => {
   const { email, newPassword } = req.body;
   try {
     const hash = await bcrypt.hash(newPassword, 10);
-    await pool.query(`UPDATE users SET password=$1 WHERE email=$2`, [hash, email]);
+    await pool.query(`UPDATE users SET password=$1 WHERE email=$2`, [
+      hash,
+      email,
+    ]);
     res.json({ success: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false });
+  }
+});
+
+// Request password reset with new password
+router.post("/request-reset", async (req, res) => {
+  const { email, newPassword, confirmPassword } = req.body;
+
+  try {
+    // Validate passwords match
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "Passwords do not match",
+      });
+    }
+
+    // Check if user exists
+    const { rows } = await pool.query("SELECT id FROM users WHERE email = $1", [
+      email,
+    ]);
+
+    if (!rows.length) {
+      return res.status(404).json({
+        success: false,
+        error: "Email not found",
+      });
+    }
+
+    // Generate a random token
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 3600000); // 1 hour from now
+
+    // Hash the new password and store with token
+    const hash = await bcrypt.hash(newPassword, 10);
+
+    // Save token and hashed new password in database
+    await pool.query(
+      `UPDATE users 
+       SET reset_token = $1, 
+           reset_token_expires = $2,
+           reset_password_hash = $3
+       WHERE email = $4`,
+      [token, expires, hash, email]
+    );
+
+    // Create confirmation link
+    const confirmLink = `http://localhost:3100/api/confirm-reset/${token}`;
+
+    // Send email with confirmation button
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Confirm Your UPark Password Reset",
+      html: `
+        <div style="text-align: center; font-family: Arial, sans-serif;">
+          <h2>UPark Password Reset</h2>
+          <p>Click the button below to confirm your password reset:</p>
+          <a href="${confirmLink}" 
+             style="background-color: #4CAF50; 
+                    color: white; 
+                    padding: 14px 20px; 
+                    margin: 8px 0; 
+                    border: none; 
+                    cursor: pointer; 
+                    text-decoration: none; 
+                    display: inline-block;">
+            Confirm Password Reset
+          </a>
+          <p>If you didn't request this change, please ignore this email.</p>
+          <p>This link will expire in 1 hour.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({
+      success: true,
+      message: "Please check your email to confirm the password reset",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      error: "Server error while requesting password reset",
+    });
+  }
+});
+
+// Confirm password reset with token
+router.get("/confirm-reset/:token", async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    // Find user with valid token and new password hash
+    const { rows } = await pool.query(
+      `SELECT id, reset_password_hash 
+       FROM users 
+       WHERE reset_token = $1 
+       AND reset_token_expires > NOW()`,
+      [token]
+    );
+
+    if (!rows.length) {
+      return res.status(400).send(`
+        <div style="text-align: center; font-family: Arial, sans-serif;">
+          <h2>Invalid or Expired Link</h2>
+          <p>Please request a new password reset.</p>
+        </div>
+      `);
+    }
+
+    // Update user's password with the stored hash
+    await pool.query(
+      `UPDATE users 
+       SET password = reset_password_hash,
+           reset_token = NULL, 
+           reset_token_expires = NULL,
+           reset_password_hash = NULL 
+       WHERE id = $1`,
+      [rows[0].id]
+    );
+
+    // Send success HTML page
+    res.send(`
+      <div style="text-align: center; font-family: Arial, sans-serif;">
+        <h2>Password Reset Successful!</h2>
+        <p>Your password has been updated. You can now close this window and log in with your new password.</p>
+      </div>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(`
+      <div style="text-align: center; font-family: Arial, sans-serif;">
+        <h2>Error</h2>
+        <p>An error occurred while resetting your password. Please try again.</p>
+      </div>
+    `);
   }
 });
 
