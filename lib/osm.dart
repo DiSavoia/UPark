@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_map_cache/flutter_map_cache.dart';
 
 class MapView extends StatelessWidget {
   const MapView({super.key});
@@ -9,6 +8,7 @@ class MapView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       body: mapa(),
     );
   }
