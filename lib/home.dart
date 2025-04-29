@@ -2,23 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const HomePage(),
-      routes: {
-        '/busqueda': (context) => const SearchPage(),
-        '/favoritos': (context) => const FavoritesPage(),
-        '/configuracion': (context) => const SettingsPage(),
-        '/perfil': (context) => const ProfilePage(),
-      },
-    );
-  }
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -43,8 +26,7 @@ class _HomePageState extends State<HomePage> {
             ),
             children: [
               TileLayer(
-                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                subdomains: ['a', 'b', 'c'],
+                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
               ),
             ],
           ),
@@ -66,7 +48,7 @@ class _HomePageState extends State<HomePage> {
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
-                        Navigator.pushNamed(context, '/busqueda');
+                        Navigator.pushNamed(context, '/search');
                       },
                     ),
                     IconButton(
@@ -74,7 +56,7 @@ class _HomePageState extends State<HomePage> {
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
-                        Navigator.pushNamed(context, '/favoritos');
+                        Navigator.pushNamed(context, '/favorites');
                       },
                     ),
                     const SizedBox(width: 80), // espacio para el botón flotante
@@ -83,7 +65,7 @@ class _HomePageState extends State<HomePage> {
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
-                        Navigator.pushNamed(context, '/configuracion');
+                        Navigator.pushNamed(context, '/settings');
                       },
                     ),
                     IconButton(
@@ -91,7 +73,7 @@ class _HomePageState extends State<HomePage> {
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
-                        Navigator.pushNamed(context, '/perfil');
+                        Navigator.pushNamed(context, '/profile');
                       },
                     ),
                   ],
@@ -116,42 +98,5 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
-  }
-}
-
-// Aquí tienes ejemplos de las pantallas a las que navegas (esto es opcional).
-class SearchPage extends StatelessWidget {
-  const SearchPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Pantalla de búsqueda')));
-  }
-}
-
-class FavoritesPage extends StatelessWidget {
-  const FavoritesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Pantalla de favoritos')));
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Pantalla de configuración')));
-  }
-}
-
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Pantalla de perfil')));
   }
 }

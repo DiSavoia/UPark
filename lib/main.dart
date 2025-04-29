@@ -4,11 +4,10 @@ import 'home.dart';
 import 'login.dart';
 import 'register.dart';
 import 'changePassword.dart';
-import 'osm.dart';
-import 'busqueda.dart';
-import 'configuracion.dart';
-import 'favoritos.dart';
-import 'perfil.dart';
+import 'search.dart';
+import 'settings.dart';
+import 'favorites.dart';
+import 'profile.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,11 +32,10 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/changePassword': (context) => const ChangePasswordPage(),
         '/home': (context) => const HomePage(),
-        '/osm': (context) => const MapView(),
-        '/busqueda': (context) => const Buscar(),
-        '/configuracion': (context) => const Settings(),
-        '/favoritos': (context) => const Favorites(),
-        '/perfil': (context) => const MyProfile(),
+        '/search': (context) => const Search(),
+        '/settings': (context) => const Settings(),
+        '/favorites': (context) => const Favorites(),
+        '/profile': (context) => const MyProfile(),
       },
     );
   }
