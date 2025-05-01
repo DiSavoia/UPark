@@ -38,6 +38,17 @@ router.post("/register", async (req, res) => {
     res.json({ success: true, userId: rows[0].id });
   } catch (err) {
     console.error(err);
+
+    // Handle duplicate email error specifically
+    if (err.code === "23505" && err.constraint === "users_email_key") {
+      return res.status(409).json({
+        success: false,
+        error:
+          "Este correo electrónico ya está registrado. Por favor utilice otro.",
+        errorCode: err.code,
+      });
+    }
+
     res.status(500).json({ success: false, error: "Server error" });
   }
 });
