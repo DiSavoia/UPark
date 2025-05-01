@@ -44,7 +44,12 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushNamed(
           context,
           '/home',
-          arguments: {'username': user['username']},
+          arguments: {
+            'username': user['username'],
+            'email': user['email'] ?? 'nombreapellido@gmail.com',
+            'phone': user['phone'] ?? '+54 11 1234-5678',
+            'is_manager': user['is_manager'] ?? false,
+          },
         );
       } else {
         // Login failed
