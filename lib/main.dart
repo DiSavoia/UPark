@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:upark/start.dart';
-import 'home.dart';
+import 'package:upark/home.dart';
 import 'login.dart';
 import 'register.dart';
 import 'changePassword.dart';
@@ -15,7 +15,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'UPark',
       theme: ThemeData(
@@ -27,7 +26,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/changePassword': (context) => const ChangePasswordPage(),
-        '/home': (context) => const HomePage()
+        '/home': (context) => const HomePage(),
       },
     );
   }

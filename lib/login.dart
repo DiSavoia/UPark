@@ -41,9 +41,12 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Inicio de sesión exitoso')),
         );
-        Navigator.pushNamed(
+
+        // Navigate to the home screen and clear previous routes
+        Navigator.pushNamedAndRemoveUntil(
           context,
           '/home',
+          (route) => false, // This clears all previous routes
           arguments: {
             'username': user['username'],
             'email': user['email'] ?? 'nombreapellido@gmail.com',

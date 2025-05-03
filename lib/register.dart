@@ -63,10 +63,18 @@ class _RegisterPageState extends State<RegisterPage> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Registro exitoso')));
-        Navigator.pushNamed(
+
+        // Navigate to home and clear previous routes
+        Navigator.pushNamedAndRemoveUntil(
           context,
           '/home',
-          arguments: {'username': username},
+          (route) => false, // This clears all previous routes
+          arguments: {
+            'username': '$firstName $lastName',
+            'email': email,
+            'phone': phone,
+            'is_manager': isManager,
+          },
         );
       } else {
         // Registration failed
