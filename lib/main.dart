@@ -32,10 +32,10 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/changePassword': (context) => const ChangePasswordPage(),
         '/home': (context) => const HomePage(),
-        '/search': (context) => const Search(),
-        '/settings': (context) => const Settings(),
+        '/search': (context) => const SearchPage(),
+        '/settings': (context) => const SettingsPage(),
         '/favorites': (context) => const Favorites(),
-        '/profile': (context) => const MyProfile(),
+        '/profile': (context) => const ProfilePage(),
       },
     );
   }
