@@ -75,6 +75,9 @@ class _HomePageState extends State<HomePage> {
         currentLocation = LatLng(userLocation.latitude!, userLocation.longitude!);
         isLoading = false;
       });
+
+      // Mueve el mapa a la ubicación actual
+      mapController.move(currentLocation!, 15);
     }
   }
 
