@@ -1,13 +1,10 @@
-//import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-import 'package:permission_handler/permission_handler.dart' as permission_handler;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:location/location.dart' as location;
-//import 'package:http/http.dart' as http;
-//import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -29,121 +26,63 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     locationService = location.Location();
     mapController = MapController();
-    requestLocationPermission();  // Solicitar permisos de ubicación al inicio
+    requestPermissions();  // Solicitar permisos de ubicación al inicio
   }
 
-  Future<void> requestLocationPermission() async {
-    // Solicitar permisos de ubicación
-    permission_handler.PermissionStatus permissionStatus = await permission_handler.Permission.locationWhenInUse.request();
-    if (permissionStatus.isGranted) {
-      initializeLocation();  // Si se concede permiso, inicializar la ubicación
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Permiso de ubicación denegado")),
-        );
-      }
+  // Función para solicitar permisos de ubicación
+  Future<void> requestPermissions() async {
+    // Verificar si el permiso ya ha sido otorgado
+    PermissionStatus status = await Permission.locationWhenInUse.status;
+
+    if (status.isGranted) {
+      // Si el permiso ya está concedido, inicializamos la ubicación
+      initializeLocation();
+    } else if (status.isDenied) {
+      // Si el permiso está denegado, directamente lo solicitamos
+      requestPermission();
+    } else if (status.isPermanentlyDenied) {
+      // Si el permiso ha sido permanentemente denegado, pedir que abran la configuración
+      openAppSettings();
     }
   }
 
+  // Función para solicitar el permiso de ubicación
+  Future<void> requestPermission() async {
+    PermissionStatus status = await Permission.locationWhenInUse.request();
+    if (status.isGranted) {
+      initializeLocation();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Permiso de ubicación denegado")),
+      );
+    }
+  }
+
+  // Inicializa la ubicación del usuario
   Future<void> initializeLocation() async {
-    // Verificar si el servicio de ubicación está habilitado
     bool serviceEnabled = await locationService.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await locationService.requestService();
       if (!serviceEnabled) {
-        return; // Si no se habilita, no continuar
+        return; // Si no se habilita el servicio de ubicación, no continuar
       }
     }
 
-    // Verificar si el permiso de ubicación está concedido
-    location.PermissionStatus permissionGranted = await locationService.hasPermission();
-    if (permissionGranted == location.PermissionStatus.denied) {
-      permissionGranted = await locationService.requestPermission();
-      if (permissionGranted != location.PermissionStatus.granted) {
-        return; // Si no se concede permiso, no continuar
-      }
-    }
-
-    // Obtener la ubicación actual
     location.LocationData userLocation = await locationService.getLocation();
 
-    // Asegurarse de que la ubicación se haya obtenido correctamente antes de actualizar el estado
     if (mounted) {
       setState(() {
         currentLocation = LatLng(userLocation.latitude!, userLocation.longitude!);
-        isLoading = false;  // Deja de mostrar el indicador de carga
+        isLoading = false;
       });
     }
   }
 
-
-
-  /*
-  Future<void> fetchCoordinatesPoints(String location) async {
-    final url = Uri.parse("https://nominatim.openstreetmap.org/search?q=$location&format=json&limit=1");
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-
-      if (data.isNotEmpty) {
-        final lat = double.parse(data[0]['lat']);
-        final lon = double.parse(data[0]['lon']);
-
-        setState(() {
-          destination = LatLng(lat, lon);
-        });
-        await fetchRoute();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se encontraron coordenadas.')),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al obtener coordenadas. Código: ${response.statusCode}')),
-      );
-    }
-  }
-
-  Future<void> fetchRoute() async {
-    if (currentLocation == null || destination == null) {
-      return;
-    }
-    final url = Uri.parse(
-      "http://router.project-osrm.org/route/v1/driving/"
-          '${currentLocation!.longitude},${currentLocation!.latitude};'
-          '${destination!.longitude},${destination!.latitude}?overview=full&geometries=polyline',
-    );
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final geometry = data['routes'][0]['geometry'];
-      decodePolyline(geometry);
-    } else {
-      // Muestra un mensaje de error usando un SnackBar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al obtener la ruta. Código: ${response.statusCode}')),
-      );
-    }
-  }
-
-  void decodePolyline(String encodedPolyline) {
-    PolylinePoints polylinePoints = PolylinePoints();
-    List<PointLatLng> decodedPoints = polylinePoints.decodePolyline(encodedPolyline);
-    setState(() {
-      route = decodedPoints.map((point) => LatLng(point.latitude, point.longitude)).toList();
-    });
-  }
-  */
-
+  // Función para mover el mapa a la ubicación actual del usuario
   Future<void> userCurrentLocation() async {
     if (currentLocation != null) {
-      mapController.move(currentLocation!, 15); // Mueve el mapa a la ubicación actual
+      mapController.move(currentLocation!, 15);
     } else {
-      // Si currentLocation es nulo, se espera a que se obtenga la ubicación
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Aún estamos obteniendo tu ubicación...')),
       );
@@ -158,15 +97,6 @@ class _HomePageState extends State<HomePage> {
         statusBarIconBrightness: Brightness.dark,
       ),
     );
-
-    /*
-    // Si estamos cargando la ubicación, mostrar el indicador de carga
-    if (isLoading) {
-      return Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-  */
 
     return Scaffold(
       backgroundColor: Colors.white,
