@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
               CurrentLocationLayer(
                 style: LocationMarkerStyle(
                   marker: DefaultLocationMarker(
-                    child: Icon(Icons.location_pin, color: Colors.white),
+                    child: Icon(Icons.navigation, color: Colors.white),
                   ),
                   markerSize: const Size(35, 35),
                   markerDirection: MarkerDirection.heading,

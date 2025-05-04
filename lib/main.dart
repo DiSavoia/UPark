@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:upark/splash.dart';
 import 'package:upark/start.dart';
 import 'home.dart';
 import 'login.dart';
@@ -16,17 +17,17 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'UPark',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      initialRoute: '/',
+      initialRoute: '/splash', // 🔹 Empieza aquí
       routes: {
+        '/splash': (context) => const SplashScreen(),
         '/': (context) => const StartPage(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
