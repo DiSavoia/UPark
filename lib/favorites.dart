@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'reviews.dart';
+import 'moreInfo.dart';
 
 class Favorites extends StatelessWidget {
   const Favorites({super.key});
@@ -13,7 +13,7 @@ class Favorites extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 20)),
-              Text('Mas Información', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
+              Text('Favoritos', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
             ],
           ),
         ),
@@ -23,16 +23,17 @@ class Favorites extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildParkingCard(context),
+            _buildFavoriteParking(context),
+            _buildFavoriteParking(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildParkingCard(BuildContext context) {
+  Widget _buildFavoriteParking(BuildContext context) {
     return Card(
-      margin: EdgeInsets.all(10),
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
@@ -47,7 +48,7 @@ class Favorites extends StatelessWidget {
                 ),
                 child: Image.asset(
                   'assets/estacionamiento.png',
-                  height: 200,
+                  height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
@@ -88,108 +89,27 @@ class Favorites extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Nombre - Calle 123',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Nombre - Calle 123',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: Icon(Icons.local_parking),
-                  label: Text('Cantidad de Plazas Disponibles: 1/50'),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MoreInfo()),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     minimumSize: Size(double.infinity, 40),
                   ),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Dueño: Nombre Apellido',
-                  style: TextStyle(fontSize: 16),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Horario de atención: 7hs - 24hs',
-                  style: TextStyle(fontSize: 16),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Precio:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('• 1hr: \$', style: TextStyle(fontSize: 16)),
-                      Text('• 6hs: \$500', style: TextStyle(fontSize: 16)),
-                      Text('• 24hs: \$1000', style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Medios de contacto:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('• Teléfono: 123-4789', style: TextStyle(fontSize: 16)),
-                      Text('• Whatsapp: 11-1234-6789', style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Métodos de pago:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Text('• Efectivo', style: TextStyle(fontSize: 16)),
-                ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const Reviews()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('Leer Reviews'),
-                          SizedBox(width: 4),
-                          Icon(Icons.arrow_forward, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ],
+                  child: Text('Mas Información'),
                 ),
               ],
             ),

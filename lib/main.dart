@@ -10,6 +10,7 @@ import 'settings.dart';
 import 'favorites.dart';
 import 'profile.dart';
 import 'reviews.dart';
+import 'moreInfo.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         '/favorites': (context) => const Favorites(),
         '/profile': (context) => const ProfilePage(),
         '/reviews': (context) => const Reviews(),
+        '/moreInfo': (context) => const MoreInfo(),
       },
     );
   }
