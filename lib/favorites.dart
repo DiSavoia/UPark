@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'reviews.dart';
 
 class Favorites extends StatelessWidget {
   const Favorites({super.key});
@@ -168,7 +169,12 @@ class Favorites extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Reviews()),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
