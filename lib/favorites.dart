@@ -7,11 +7,12 @@ class Favorites extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-            SizedBox(width: 8),
-            Text('Mas Información', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black)),
+            Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 20)),
+            Text('Mas Información', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -165,10 +166,21 @@ class Favorites extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton.icon(
+                    ElevatedButton(
                       onPressed: () {},
-                      icon: Text('Leer Reviews', style: TextStyle(color: Colors.black)),
-                      label: Icon(Icons.arrow_forward, color: Colors.red),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Leer Reviews'),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_forward, color: Colors.white),
+                        ],
+                      ),
                     ),
                   ],
                 ),
