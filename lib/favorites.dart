@@ -7,13 +7,14 @@ class Favorites extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 20)),
-            Text('Mas Información', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
-          ],
+        title: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 20)),
+              Text('Mas Información', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
+            ],
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 1,
@@ -102,7 +103,7 @@ class Favorites extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () {},
                   icon: Icon(Icons.local_parking),
-                  label: Text('Cantidad de Plazas Disponibles: 100'),
+                  label: Text('Cantidad de Plazas Disponibles: 1/50'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
