@@ -20,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   LatLng? destination;
   List<LatLng> route = [];
   bool isLoading = true;
+  bool isManager = false;
 
   @override
   void initState() {
@@ -27,6 +28,17 @@ class _HomePageState extends State<HomePage> {
     locationService = location.Location();
     mapController = MapController();
     requestPermissions();  // Solicitar permisos de ubicación al inicio
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null && args.containsKey('is_manager')) {
+      setState(() {
+        isManager = args['is_manager'] ?? false;
+      });
+    }
   }
 
   // Función para solicitar permisos de ubicación
@@ -169,11 +181,15 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.favorite_border),
+                      icon: Icon(isManager ? Icons.edit : Icons.favorite_border),
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
-                        Navigator.pushNamed(context, '/favorites');
+                        if (isManager) {
+                          // Navigate to edit page or perform edit action
+                        } else {
+                          Navigator.pushNamed(context, '/favorites');
+                        }
                       },
                     ),
                     const SizedBox(width: 80), // espacio para FAB central
