@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
@@ -13,6 +16,20 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+class Lugar {
+  final String nombre;
+  final String direccion;
+  final String imagen;
+  final LatLng coordenadas;
+
+  Lugar({
+    required this.nombre,
+    required this.direccion,
+    required this.imagen,
+    required this.coordenadas,
+  });
+}
+
 class _HomePageState extends State<HomePage> {
   late location.Location locationService;
   late MapController mapController;
@@ -21,6 +38,8 @@ class _HomePageState extends State<HomePage> {
   List<LatLng> route = [];
   bool isLoading = true;
   bool isManager = false;
+  List<Map<String, dynamic>> nearbyPlaces = [];
+  Map<String, dynamic>? selectedPlace;
 
   @override
   void initState() {
@@ -90,6 +109,7 @@ class _HomePageState extends State<HomePage> {
 
       // Mueve el mapa a la ubicación actual
       mapController.move(currentLocation!, 15);
+      await loadNearbyPlaces();
     }
   }
 
@@ -103,6 +123,112 @@ class _HomePageState extends State<HomePage> {
       );
     }
   }
+
+  //Traductor direccion a LatLng
+  Future<LatLng?> geocodeAddress(String direccion) async {
+    final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=$direccion&format=json&limit=1');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data.isNotEmpty) {
+        final lat = double.parse(data[0]['lat']);
+        final lon = double.parse(data[0]['lon']);
+        return LatLng(lat, lon);
+      }
+    }
+    return null;
+  }
+
+  //Centra el mapa a una direccion y carga lugares cercanos a esa direccion
+  Future<void> loadNearbyPlaces({String? direccionCentro}) async {
+    LatLng center;
+
+    if (direccionCentro != null) {
+      final coords = await geocodeAddress(direccionCentro);
+      if (coords == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo geocodificar la dirección')),
+        );
+        return;
+      }
+      center = coords;
+    } else if (currentLocation != null) {
+      center = currentLocation!;
+    } else {
+      return;
+    }
+
+    final allPlaces = await obtenerLugaresDesdeBase();
+
+    final Distance distance = Distance();
+    List<Map<String, dynamic>> filteredPlaces = [];
+
+    for (var place in allPlaces) {
+      final placeCoords = await geocodeAddress(place['direccion']!);
+      if (placeCoords != null) {
+        final meters = distance(center, placeCoords);
+        if (meters <= 10000) {
+          filteredPlaces.add({
+            'nombre': place['nombre']!,
+            'direccion': place['direccion']!,
+            'imagen': place['imagen']!,
+            'latLng': placeCoords,
+          });
+        }
+      }
+    }
+
+    setState(() {
+      nearbyPlaces = filteredPlaces;
+      if (direccionCentro != null) {
+        mapController.move(center, 15);
+      }
+      selectedPlace = null;
+    });
+  }
+
+
+  Future<List<Lugar>> obtenerLugaresConCoordenadas() async {
+    final lugaresBase = await obtenerLugaresDesdeBase();
+
+    List<Lugar> lugares = [];
+
+    for (var lugar in lugaresBase) {
+      final coords = await geocodeAddress(lugar['direccion']!);
+      if (coords != null) {
+        lugares.add(
+          Lugar(
+            nombre: lugar['nombre']!,
+            direccion: lugar['direccion']!,
+            imagen: lugar['imagen']!,
+            coordenadas: coords,
+          ),
+        );
+      }
+    }
+
+    return lugares;
+  }
+
+
+  //FALSA BASE DE DATOS
+  Future<List<Map<String, String>>> obtenerLugaresDesdeBase() async {
+    return [
+      {
+        'nombre': 'American Century Investments',
+        'direccion': '1665 Charleston Road, Mountain View, CA 94043',
+        'imagen': 'https://via.placeholder.com/400x200.png?text=Plaza+Central',
+      },
+      {
+        'nombre': 'Algun lugar',
+        'direccion': '1075 Terra Bella Avenue, Mountain View, CA 94043',
+        'imagen': 'https://via.placeholder.com/400x200.png?text=Cafe+del+Sol',
+      },
+    ];
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -121,8 +247,13 @@ class _HomePageState extends State<HomePage> {
           FlutterMap(
             mapController: mapController,
             options: MapOptions(
-              initialCenter: currentLocation ?? LatLng(-34.6037, -58.3816), // Buenos Aires
+              initialCenter: currentLocation ?? LatLng(-34.6037, -58.3816),
               initialZoom: 15,
+              onTap: (_, __) {
+                setState(() {
+                  selectedPlace = null;
+                });
+              },
             ),
             children: [
               TileLayer(
@@ -137,8 +268,141 @@ class _HomePageState extends State<HomePage> {
                   markerDirection: MarkerDirection.heading,
                 ),
               ),
+              MarkerLayer(
+                markers: nearbyPlaces
+                    .map((place) {
+                  final latLng = place['latLng'];
+
+                  if (latLng == null) {
+                    return null;
+                  }
+
+                  return Marker(
+                    point: latLng,
+                    width: 40,
+                    height: 40,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedPlace = place;
+                        });
+                      },
+                      child: const Icon(
+                        Icons.garage,
+                        color: Colors.red,
+                        size: 40,
+                      ),
+                    ),
+                  );
+                })
+                    .whereType<Marker>() // Filtra los null para que no entren en la lista
+                    .toList(),
+              ),
+
             ],
           ),
+
+          // Segundo botón flotante en esquina inferior derecha
+          Positioned(
+            bottom: 120,
+            right: 10,
+            child: SafeArea(
+              child: SizedBox(
+                height: 70,
+                width: 70,
+                child: FloatingActionButton(
+                  onPressed: currentLocation == null ? null : userCurrentLocation, // Solo habilitar si la ubicación está disponible
+                  backgroundColor: Colors.blue,
+                  elevation: 2,
+                  shape: const CircleBorder(),
+                  child: const Icon(Icons.my_location, color: Colors.white, size: 30),
+                ),
+              ),
+            ),
+          ),
+
+          //Barra media
+          if (selectedPlace != null)
+            Positioned(
+              bottom: 140,
+              left: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Fila superior: Nombre + dirección + botón cerrar
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${selectedPlace!['nombre']} - ${selectedPlace!['direccion']}',
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedPlace = null;
+                            });
+                          },
+                          child: const Icon(
+                            Icons.close,
+                            size: 24,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    if (selectedPlace!['imagen'] != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          selectedPlace!['imagen'],
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Acción adicional
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // color azul
+                        minimumSize: const Size(double.infinity, 35), // ancho completo, alto 35
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Más información',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
 
           // Barra superior blanca con logo
           Positioned(
@@ -210,25 +474,6 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
                   ],
-                ),
-              ),
-            ),
-          ),
-
-          // Segundo botón flotante en esquina inferior derecha
-          Positioned(
-            bottom: 120,
-            right: 10,
-            child: SafeArea(
-              child: SizedBox(
-                height: 70,
-                width: 70,
-                child: FloatingActionButton(
-                  onPressed: currentLocation == null ? null : userCurrentLocation, // Solo habilitar si la ubicación está disponible
-                  backgroundColor: Colors.blue,
-                  elevation: 2,
-                  shape: const CircleBorder(),
-                  child: const Icon(Icons.my_location, color: Colors.white, size: 30),
                 ),
               ),
             ),
