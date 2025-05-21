@@ -232,4 +232,69 @@ router.get("/confirm-reset/:token", async (req, res) => {
   }
 });
 
+// Get all users HTML table
+router.get("/users-table", async (req, res) => {
+  try {
+    const { rows } = await pool.query(`SELECT * FROM users`);
+
+    let htmlTable = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>UPark Users</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        h1 { color: #333; }
+      </style>
+    </head>
+    <body>
+      <h1>UPark Users</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Is Manager</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+    rows.forEach((user) => {
+      htmlTable += `
+          <tr>
+            <td>${user.id}</td>
+            <td>${user.username}</td>
+            <td>${user.first_name}</td>
+            <td>${user.last_name}</td>
+            <td>${user.email}</td>
+            <td>${user.phone || ""}</td>
+            <td>${user.is_manager ? "Yes" : "No"}</td>
+            <td>${
+              user.created_at ? new Date(user.created_at).toLocaleString() : ""
+            }</td>
+          </tr>`;
+    });
+
+    htmlTable += `
+        </tbody>
+      </table>
+    </body>
+    </html>`;
+
+    res.send(htmlTable);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
+
 module.exports = router;
