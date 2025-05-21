@@ -11,7 +11,7 @@ class ChangePasswordPage extends StatefulWidget {
 
 class _ChangePasswordPageState extends State<ChangePasswordPage> {
   static const primaryColor = Color(0xFF1E90FF);
-  static const apiBaseUrl = 'http://10.0.2.2:3100/api';
+  static const apiBaseUrl = 'http://18.218.68.253/api';
 
   final emailController = TextEditingController();
   final newPasswordController = TextEditingController();

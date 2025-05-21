@@ -12,7 +12,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   static const primaryColor = Color(0xFF1E90FF);
   // This should match the URL used in register.dart
-  static const apiBaseUrl = 'http://10.0.2.2:3100/api';
+  static const apiBaseUrl = 'http://18.218.68.253/api';
 
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();

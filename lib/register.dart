@@ -13,7 +13,7 @@ class _RegisterPageState extends State<RegisterPage> {
   static const primaryColor = Color(0xFF1E90FF);
   // This should be configured based on your environment
   // For physical devices, use your computer's IP address instead of localhost
-  static const apiBaseUrl = 'http://10.0.2.2:3100/api'; // For Android emulator
+  static const apiBaseUrl = 'http://18.218.68.253/api'; // For Android emulator
   // static const apiBaseUrl = 'http://YOUR_COMPUTER_IP:3200/api'; // For physical devices
 
   final usernameController = TextEditingController();
