@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
@@ -16,18 +15,29 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+
 class Lugar {
-  final String nombre;
   final String direccion;
-  final String imagen;
   final LatLng coordenadas;
+  final String precio;
 
   Lugar({
-    required this.nombre,
     required this.direccion,
-    required this.imagen,
     required this.coordenadas,
+    required this.precio,
   });
+
+  //Metodo factory para crear un Lugar desde un Map (como el que devuelve la función)
+  factory Lugar.fromMap(Map<String, dynamic> map) {
+    return Lugar(
+      direccion: map['direccion'] ?? '',
+      coordenadas: LatLng(
+        (map['latitud'] as num).toDouble(),
+        (map['longitud'] as num).toDouble(),
+      ),
+      precio: map['precio'] ?? '',
+    );
+  }
 }
 
 class _HomePageState extends State<HomePage> {
@@ -40,6 +50,7 @@ class _HomePageState extends State<HomePage> {
   bool isManager = false;
   List<Map<String, dynamic>> nearbyPlaces = [];
   Map<String, dynamic>? selectedPlace;
+  static const apiBaseUrl = 'http://18.218.68.253/api';
 
   @override
   void initState() {
@@ -160,23 +171,19 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final allPlaces = await obtenerLugaresDesdeBase();
+    final lugares = await obtenerLugaresDesdeBase();
 
     final Distance distance = Distance();
     List<Map<String, dynamic>> filteredPlaces = [];
 
-    for (var place in allPlaces) {
-      final placeCoords = await geocodeAddress(place['direccion']!);
-      if (placeCoords != null) {
-        final meters = distance(center, placeCoords);
-        if (meters <= 10000) {
-          filteredPlaces.add({
-            'nombre': place['nombre']!,
-            'direccion': place['direccion']!,
-            'imagen': place['imagen']!,
-            'latLng': placeCoords,
-          });
-        }
+    for (var lugar in lugares) {
+      final meters = distance(center, lugar.coordenadas);
+      if (meters <= 10000) {
+        filteredPlaces.add({
+          'direccion': lugar.direccion,
+          'coordenadas': lugar.coordenadas,
+          'precio': lugar.precio
+        });
       }
     }
 
@@ -189,46 +196,42 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<List<Lugar>> obtenerLugaresDesdeBase() async {
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/parkings'),
+      headers: {'Content-Type': 'application/json'},
+    );
 
-  Future<List<Lugar>> obtenerLugaresConCoordenadas() async {
-    final lugaresBase = await obtenerLugaresDesdeBase();
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      data.map<Map<String, dynamic>>((lugar) {
+        return {
+          'direccion': lugar['address'],
+          'latitud': lugar['latitude'],
+          'longitud': lugar['longitude'],
+          'precio': lugar['hourly_rate'],
+        };
+      }).toList();
 
-    List<Lugar> lugares = [];
+      List<Lugar> lugares = [];
 
-    for (var lugar in lugaresBase) {
-      final coords = await geocodeAddress(lugar['direccion']!);
-      if (coords != null) {
+      for (var lugar in data) {
+        final coords = LatLng(lugar['latitud'], lugar['longitud']);
         lugares.add(
           Lugar(
-            nombre: lugar['nombre']!,
             direccion: lugar['direccion']!,
-            imagen: lugar['imagen']!,
             coordenadas: coords,
+            precio: lugar['precio']!
           ),
         );
       }
+
+      return lugares;
+
+    } else {
+      throw Exception('Error al obtener los lugares desde la base de datos');
     }
-
-    return lugares;
   }
-
-
-  //FALSA BASE DE DATOS
-  Future<List<Map<String, String>>> obtenerLugaresDesdeBase() async {
-    return [
-      {
-        'nombre': 'American Century Investments',
-        'direccion': '1665 Charleston Road, Mountain View, CA 94043',
-        'imagen': 'https://via.placeholder.com/400x200.png?text=Plaza+Central',
-      },
-      {
-        'nombre': 'Algun lugar',
-        'direccion': '1075 Terra Bella Avenue, Mountain View, CA 94043',
-        'imagen': 'https://via.placeholder.com/400x200.png?text=Cafe+del+Sol',
-      },
-    ];
-  }
-
 
   @override
   Widget build(BuildContext context) {
