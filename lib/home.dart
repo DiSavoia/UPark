@@ -15,19 +15,19 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-
 class Lugar {
   final String direccion;
   final LatLng coordenadas;
   final String precio;
+  final String imagenUrl;
 
   Lugar({
     required this.direccion,
     required this.coordenadas,
     required this.precio,
+    required this.imagenUrl,
   });
 
-  //Metodo factory para crear un Lugar desde un Map (como el que devuelve la función)
   factory Lugar.fromMap(Map<String, dynamic> map) {
     return Lugar(
       direccion: map['direccion'] ?? '',
@@ -36,6 +36,7 @@ class Lugar {
         (map['longitud'] as num).toDouble(),
       ),
       precio: map['precio'] ?? '',
+      imagenUrl: map['image'] ?? '',
     );
   }
 }
@@ -44,10 +45,9 @@ class _HomePageState extends State<HomePage> {
   late location.Location locationService;
   late MapController mapController;
   LatLng? currentLocation;
-  LatLng? destination;
-  List<LatLng> route = [];
   bool isLoading = true;
   bool isManager = false;
+
   List<Map<String, dynamic>> nearbyPlaces = [];
   Map<String, dynamic>? selectedPlace;
   static const apiBaseUrl = 'http://18.218.68.253/api';
@@ -57,13 +57,14 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     locationService = location.Location();
     mapController = MapController();
-    requestPermissions();  // Solicitar permisos de ubicación al inicio
+    requestPermissions();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final Map<String, dynamic>? args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null && args.containsKey('is_manager')) {
       setState(() {
         isManager = args['is_manager'] ?? false;
@@ -71,46 +72,39 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Función para solicitar permisos de ubicación
   Future<void> requestPermissions() async {
-    // Verificar si el permiso ya ha sido otorgado
     PermissionStatus status = await Permission.locationWhenInUse.status;
 
     if (status.isGranted) {
-      // Si el permiso ya está concedido, inicializamos la ubicación
-      initializeLocation();
+      await initializeLocation();
     } else if (status.isDenied) {
-      // Si el permiso está denegado, directamente lo solicitamos
-      requestPermission();
+      await requestPermission();
     } else if (status.isPermanentlyDenied) {
-      // Si el permiso ha sido permanentemente denegado, pedir que abran la configuración
-      openAppSettings();
+      await openAppSettings();
     }
   }
 
-  // Función para solicitar el permiso de ubicación
   Future<void> requestPermission() async {
     PermissionStatus status = await Permission.locationWhenInUse.request();
     if (status.isGranted) {
-      initializeLocation();
+      await initializeLocation();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Permiso de ubicación denegado")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Permiso de ubicación denegado")),
+        );
+      }
     }
   }
 
-  // Inicializa la ubicación del usuario
   Future<void> initializeLocation() async {
     bool serviceEnabled = await locationService.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await locationService.requestService();
-      if (!serviceEnabled) {
-        return; // Si no se habilita el servicio de ubicación, no continuar
-      }
+      if (!serviceEnabled) return;
     }
 
-    location.LocationData userLocation = await locationService.getLocation();
+    final userLocation = await locationService.getLocation();
 
     if (mounted) {
       setState(() {
@@ -118,27 +112,25 @@ class _HomePageState extends State<HomePage> {
         isLoading = false;
       });
 
-      // Mueve el mapa a la ubicación actual
       mapController.move(currentLocation!, 15);
       await loadNearbyPlaces();
     }
   }
 
-  // Función para mover el mapa a la ubicación actual del usuario
   Future<void> userCurrentLocation() async {
     if (currentLocation != null) {
       mapController.move(currentLocation!, 15);
-    } else {
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Aún estamos obteniendo tu ubicación...')),
       );
     }
   }
 
-  //Traductor direccion a LatLng
   Future<LatLng?> geocodeAddress(String direccion) async {
     final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=$direccion&format=json&limit=1');
+      'https://nominatim.openstreetmap.org/search?q=$direccion&format=json&limit=1',
+    );
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -152,16 +144,17 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
-  //Centra el mapa a una direccion y carga lugares cercanos a esa direccion
   Future<void> loadNearbyPlaces({String? direccionCentro}) async {
     LatLng center;
 
     if (direccionCentro != null) {
       final coords = await geocodeAddress(direccionCentro);
       if (coords == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo geocodificar la dirección')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se pudo geocodificar la dirección')),
+          );
+        }
         return;
       }
       center = coords;
@@ -172,7 +165,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     final lugares = await obtenerLugaresDesdeBase();
-
     final Distance distance = Distance();
     List<Map<String, dynamic>> filteredPlaces = [];
 
@@ -182,18 +174,21 @@ class _HomePageState extends State<HomePage> {
         filteredPlaces.add({
           'direccion': lugar.direccion,
           'coordenadas': lugar.coordenadas,
-          'precio': lugar.precio
+          'precio': lugar.precio,
+          'imagen': lugar.imagenUrl,
         });
       }
     }
 
-    setState(() {
-      nearbyPlaces = filteredPlaces;
-      if (direccionCentro != null) {
-        mapController.move(center, 15);
-      }
-      selectedPlace = null;
-    });
+    if (mounted) {
+      setState(() {
+        nearbyPlaces = filteredPlaces;
+        if (direccionCentro != null) {
+          mapController.move(center, 15);
+        }
+        selectedPlace = null;
+      });
+    }
   }
 
   Future<List<Lugar>> obtenerLugaresDesdeBase() async {
@@ -204,30 +199,16 @@ class _HomePageState extends State<HomePage> {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      data.map<Map<String, dynamic>>((lugar) {
-        return {
-          'direccion': lugar['address'],
-          'latitud': lugar['latitude'],
-          'longitud': lugar['longitude'],
-          'precio': lugar['hourly_rate'],
-        };
+
+      return data.map<Lugar>((lugarJson) {
+        return Lugar.fromMap({
+          'direccion': lugarJson['address'],
+          'latitud': lugarJson['latitude'],
+          'longitud': lugarJson['longitude'],
+          'precio': lugarJson['hourly_rate'].toString(),
+          'image': lugarJson['image'] ?? '',
+        });
       }).toList();
-
-      List<Lugar> lugares = [];
-
-      for (var lugar in data) {
-        final coords = LatLng(lugar['latitud'], lugar['longitud']);
-        lugares.add(
-          Lugar(
-            direccion: lugar['direccion']!,
-            coordenadas: coords,
-            precio: lugar['precio']!
-          ),
-        );
-      }
-
-      return lugares;
-
     } else {
       throw Exception('Error al obtener los lugares desde la base de datos');
     }
@@ -246,7 +227,6 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Mapa
           FlutterMap(
             mapController: mapController,
             options: MapOptions(
@@ -272,14 +252,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               MarkerLayer(
-                markers: nearbyPlaces
-                    .map((place) {
-                  final latLng = place['latLng'];
-
-                  if (latLng == null) {
-                    return null;
-                  }
-
+                markers: nearbyPlaces.map((place) {
+                  final latLng = place['coordenadas'] as LatLng?;
+                  if (latLng == null) return null;
                   return Marker(
                     point: latLng,
                     width: 40,
@@ -297,15 +272,12 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   );
-                })
-                    .whereType<Marker>() // Filtra los null para que no entren en la lista
-                    .toList(),
+                }).whereType<Marker>().toList(),
               ),
-
             ],
           ),
 
-          // Segundo botón flotante en esquina inferior derecha
+          // Botón ubicación actual
           Positioned(
             bottom: 120,
             right: 10,
@@ -314,7 +286,7 @@ class _HomePageState extends State<HomePage> {
                 height: 70,
                 width: 70,
                 child: FloatingActionButton(
-                  onPressed: currentLocation == null ? null : userCurrentLocation, // Solo habilitar si la ubicación está disponible
+                  onPressed: currentLocation == null ? null : userCurrentLocation,
                   backgroundColor: Colors.blue,
                   elevation: 2,
                   shape: const CircleBorder(),
@@ -324,7 +296,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          //Barra media
+          // Barra media
           if (selectedPlace != null)
             Positioned(
               bottom: 140,
@@ -335,7 +307,7 @@ class _HomePageState extends State<HomePage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 8,
@@ -347,13 +319,12 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Fila superior: Nombre + dirección + botón cerrar
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Text(
-                            '${selectedPlace!['nombre']} - ${selectedPlace!['direccion']}',
+                            selectedPlace!['direccion'] ?? '',
                             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -371,10 +342,8 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 8),
-
-                    if (selectedPlace!['imagen'] != null)
+                    if (selectedPlace!['imagen'] != null && selectedPlace!['imagen'] != '')
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
@@ -382,16 +351,17 @@ class _HomePageState extends State<HomePage> {
                           height: 150,
                           width: double.infinity,
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
                         ),
                       ),
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () {
-                        // Acción adicional
+                        // Acción adicional si quieres
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue, // color azul
-                        minimumSize: const Size(double.infinity, 35), // ancho completo, alto 35
+                        backgroundColor: Colors.blue,
+                        minimumSize: const Size(double.infinity, 35),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -406,8 +376,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-
-          // Barra superior blanca con logo
+          // Barra superior con logo
           Positioned(
             top: 0,
             left: 0,
@@ -426,7 +395,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // Bottom bar
+          // Barra inferior con botones
           Align(
             alignment: Alignment.bottomCenter,
             child: BottomAppBar(
@@ -443,62 +412,58 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.search),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/search');
-                      },
+                      onPressed: () => Navigator.pushNamed(context, '/search'),
                     ),
                     IconButton(
-                      icon: Icon(isManager ? Icons.edit : Icons.favorite_border),
+                      icon: Icon(isManager ? Icons.people : Icons.shopping_cart),
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
                         if (isManager) {
-                          // Navigate to edit page or perform edit action
+                          Navigator.pushNamed(context, '/usuarios');
                         } else {
-                          Navigator.pushNamed(context, '/favorites');
+                          Navigator.pushNamed(context, '/reservas');
                         }
                       },
                     ),
-                    const SizedBox(width: 80), // espacio para FAB central
+                    const SizedBox(width: 50), // espacio para el botón flotante central
                     IconButton(
-                      icon: const Icon(Icons.settings),
+                      icon: const Icon(Icons.message),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/settings');
-                      },
+                      onPressed: () => Navigator.pushNamed(context, '/chat'),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.person_outline),
+                      icon: const Icon(Icons.person),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/profile');
-                      },
+                      onPressed: () => Navigator.pushNamed(context, '/profile'),
                     ),
                   ],
                 ),
               ),
             ),
           ),
+
+          // Botón flotante central
+          Positioned(
+            bottom: 35,
+            left: MediaQuery.of(context).size.width / 2 - 28,
+            child: FloatingActionButton(
+              onPressed: () {
+                // Acción para botón central
+              },
+              backgroundColor: Colors.blue,
+              child: const Icon(Icons.add, size: 32),
+            ),
+          ),
+
+          if (isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
         ],
       ),
-
-      // Primer botón flotante central
-      floatingActionButton: SizedBox(
-        height: 150,
-        width: 70,
-        child: FloatingActionButton(
-          onPressed: () {
-            // Acción del botón flotante central
-          },
-          backgroundColor: Colors.blue,
-          elevation: 2,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.map, color: Colors.white),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
