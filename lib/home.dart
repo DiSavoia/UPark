@@ -355,26 +355,19 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Acción adicional si quieres
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        minimumSize: const Size(double.infinity, 35),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Más información',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/moreInfo');
+                        },
+                        child: const Text("Más información"),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+
 
           // Barra superior con logo
           Positioned(
