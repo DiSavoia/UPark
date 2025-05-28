@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:crypto/crypto.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -41,13 +42,17 @@ class _RegisterPageState extends State<RegisterPage> {
       _isLoading = true;
     });
 
+    final bytes = utf8.encode(password);
+    final hash = sha256.convert(bytes);
+    final hashedPassword = hash.toString();
+
     try {
       final response = await http.post(
         Uri.parse('$apiBaseUrl/api/users'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username,
-          'password_hash': password,
+          'password_hash': hashedPassword,
           'first_name': firstName,
           'last_name': lastName,
           'phone': phone,
@@ -56,9 +61,11 @@ class _RegisterPageState extends State<RegisterPage> {
         }),
       );
 
+      print('Response body: ${response.body}');
+
       final responseData = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && responseData['success']) {
+      if (responseData['success'] == true) {
         // Registration successful
         ScaffoldMessenger.of(
           context,
