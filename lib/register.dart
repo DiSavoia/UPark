@@ -13,8 +13,8 @@ class _RegisterPageState extends State<RegisterPage> {
   static const primaryColor = Color(0xFF1E90FF);
   // This should be configured based on your environment
   // For physical devices, use your computer's IP address instead of localhost
-  static const apiBaseUrl = 'http://18.218.68.253/api'; // For Android emulator
-  // static const apiBaseUrl = 'http://YOUR_COMPUTER_IP:3200/api'; // For physical devices
+  static const apiBaseUrl = 'http://18.218.68.253'; // For Android emulator
+  // static const apiBaseUrl = 'http://YOUR_COMPUTER_IP:3200'; // For physical devices
 
   final usernameController = TextEditingController();
   final firstNameController = TextEditingController();
@@ -43,15 +43,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('$apiBaseUrl/register'),
+        Uri.parse('$apiBaseUrl/api/users'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username,
+          'password_hash': password,
           'first_name': firstName,
           'last_name': lastName,
           'phone': phone,
           'email': email,
-          'password': password,
           'is_manager': isManager,
         }),
       );
