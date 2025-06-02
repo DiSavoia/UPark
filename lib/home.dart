@@ -47,6 +47,7 @@ class _HomePageState extends State<HomePage> {
   LatLng? currentLocation;
   bool isLoading = true;
   bool isManager = false;
+  Marker? searchMarker;
 
   List<Map<String, dynamic>> nearbyPlaces = [];
   Map<String, dynamic>? selectedPlace;
@@ -113,7 +114,6 @@ class _HomePageState extends State<HomePage> {
       });
 
       mapController.move(currentLocation!, 15);
-      await loadNearbyPlaces();
     }
   }
 
@@ -405,8 +405,25 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.search),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed: () => Navigator.pushNamed(context, '/search'),
+                      onPressed: () async {
+                        final result = await Navigator.pushNamed(context, '/search');
+                        if (result != null && result is Map<String, dynamic>) {
+                          final LatLng? coordenadas = result['coordenadas'];
+                          final String? direccion = result['direccion'];
+                          if (coordenadas != null) {
+                            mapController.move(coordenadas, 15);
+                            searchMarker = Marker(
+                              point: coordenadas,
+                              width: 40,
+                              height: 40,
+                              child: const Icon(Icons.location_on, size: 40, color: Colors.blue),
+                            );
+                            await loadNearbyPlaces(direccionCentro: direccion);
+                          }
+                        }
+                      },
                     ),
+
                     IconButton(
                       icon: Icon(isManager ? Icons.people : Icons.shopping_cart),
                       iconSize: 30,
