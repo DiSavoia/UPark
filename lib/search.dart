@@ -17,9 +17,22 @@ class SearchPageState extends State<SearchPage> {
   bool _isLoading = false;
   Timer? _debounce;
 
-  final String _apiKey = 'TU_API_KEY_AQUI';
+  final String _apiKey = 'pk.0340df42008e68b8520d43d331742ce1';
+
+  int _starsIndex = 0;
+  int _priceIndex = 0;
+  int _distanceIndex = 0;
+
+  bool _showFilters = false;
 
   void _onChanged(String value) {
+    // Oculta filtros cuando escribís
+    if (_showFilters) {
+      setState(() {
+        _showFilters = false;
+      });
+    }
+
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 700), () {
       _searchSuggestions(value);
@@ -72,9 +85,16 @@ class SearchPageState extends State<SearchPage> {
     final double lon = double.parse(suggestion['lon']);
     final String displayName = suggestion['display_name'];
 
+    int distanciaMetros = (_distanceIndex == 10) ? 1100 : (_distanceIndex + 1) * 100;
+    int? precioMax = (_priceIndex == 10) ? null : (_priceIndex + 1) * 500;
+    int estrellas = _starsIndex + 1;
+
     Navigator.pop(context, {
       'coordenadas': LatLng(lat, lon),
       'direccion': displayName,
+      'distancia': distanciaMetros,
+      'precio': precioMax,
+      'estrellas': estrellas,
     });
   }
 
@@ -83,6 +103,116 @@ class SearchPageState extends State<SearchPage> {
     _debounce?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  Widget _buildStarsFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Estrellas',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List.generate(5, (index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: ChoiceChip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(
+                      index + 1,
+                          (_) => const Icon(Icons.star, size: 16, color: Colors.amber),
+                    ),
+                  ),
+                  selected: _starsIndex == index,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      _starsIndex = index;
+                    });
+                  },
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Precio máximo (ARS)',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List<Widget>.generate(11, (int index) {
+              final label = index < 10 ? '\$${(index + 1) * 500}' : '+\$5000';
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: ChoiceChip(
+                  label: Text(label, style: const TextStyle(fontSize: 12)),
+                  selected: _priceIndex == index,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      _priceIndex = index;
+                    });
+                  },
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDistanceFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Distancia (metros)',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List<Widget>.generate(11, (int index) {
+              final label = index < 10 ? '${(index + 1) * 100}' : '+1000';
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: ChoiceChip(
+                  label: Text(label, style: const TextStyle(fontSize: 12)),
+                  selected: _distanceIndex == index,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      _distanceIndex = index;
+                    });
+                  },
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -94,19 +224,44 @@ class SearchPageState extends State<SearchPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _controller,
               onChanged: _onChanged,
               decoration: const InputDecoration(
-                labelText: 'Escribí una dirección',
+                labelText: 'Dirección de destino',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // Botón Filtros
+            ElevatedButton.icon(
+              icon: const Icon(Icons.filter_list),
+              label: const Text('Filtros'),
+              onPressed: () {
+                setState(() {
+                  _showFilters = !_showFilters;
+                });
+              },
+            ),
+
+            // Panel filtros - aparece solo si _showFilters == true
+            if (_showFilters) ...[
+              const SizedBox(height: 12),
+              _buildStarsFilter(),
+              const SizedBox(height: 12),
+              _buildPriceFilter(),
+              const SizedBox(height: 12),
+              _buildDistanceFilter(),
+              const SizedBox(height: 12),
+            ],
+
+            // Resultado o loading
             if (_isLoading)
-              const CircularProgressIndicator()
+              const Center(child: CircularProgressIndicator())
             else
               Expanded(
                 child: ListView.builder(

@@ -19,12 +19,14 @@ class Lugar {
   final String direccion;
   final LatLng coordenadas;
   final String precio;
+  final String estrellas;
   final String imagenUrl;
 
   Lugar({
     required this.direccion,
     required this.coordenadas,
     required this.precio,
+    required this.estrellas,
     required this.imagenUrl,
   });
 
@@ -36,6 +38,7 @@ class Lugar {
         (map['longitud'] as num).toDouble(),
       ),
       precio: map['precio'] ?? '',
+      estrellas: map['estrllas'] ?? '',
       imagenUrl: map['image'] ?? '',
     );
   }
@@ -144,11 +147,11 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
-  Future<void> loadNearbyPlaces({String? direccionCentro}) async {
+  Future<void> loadNearbyPlaces({String? direccion, LatLng? coordenadas, int? distancia, int? precio, int? estrellas}) async {
     LatLng center;
 
-    if (direccionCentro != null) {
-      final coords = await geocodeAddress(direccionCentro);
+    if (direccion != null) {
+      final coords = await geocodeAddress(direccion);
       if (coords == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -164,26 +167,23 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final lugares = await obtenerLugaresDesdeBase();
-    final Distance distance = Distance();
-    List<Map<String, dynamic>> filteredPlaces = [];
+    final lugares = await obtenerLugaresDesdeBase(coordenadas: coordenadas, distancia: distancia, precio: precio, estrellas: estrellas);
+    List<Map<String, dynamic>> lugaresT = [];
 
     for (var lugar in lugares) {
-      final meters = distance(center, lugar.coordenadas);
-      if (meters <= 10000) {
-        filteredPlaces.add({
-          'direccion': lugar.direccion,
-          'coordenadas': lugar.coordenadas,
-          'precio': lugar.precio,
-          'imagen': lugar.imagenUrl,
-        });
-      }
+      lugaresT.add({
+        'direccion': lugar.direccion,
+        'coordenadas': lugar.coordenadas,
+        'precio': lugar.precio,
+        'estrellas': lugar.estrellas,
+        'imagen': lugar.imagenUrl,
+      });
     }
 
     if (mounted) {
       setState(() {
-        nearbyPlaces = filteredPlaces;
-        if (direccionCentro != null) {
+        nearbyPlaces = lugaresT;
+        if (direccion != null) {
           mapController.move(center, 15);
         }
         selectedPlace = null;
@@ -191,9 +191,29 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<List<Lugar>> obtenerLugaresDesdeBase() async {
+  Future<List<Lugar>> obtenerLugaresDesdeBase({LatLng? coordenadas, int? distancia, int? precio, int? estrellas}) async {
+    final queryParameters = <String, String>{};
+
+    if (coordenadas != null) {
+      queryParameters['coordenadas'] = '${coordenadas.latitude},${coordenadas.longitude}';
+    }
+
+    if (distancia != null) {
+      queryParameters['distancia'] = distancia.toString();
+    }
+
+    if (precio != null) {
+      queryParameters['precio'] = precio.toString();
+    }
+
+    if (estrellas != null) {
+      queryParameters['estrellas'] = estrellas.toString();
+    }
+
+    final uri = Uri.parse('$apiBaseUrl/parkings').replace(queryParameters: queryParameters);
+
     final response = await http.get(
-      Uri.parse('$apiBaseUrl/parkings'),
+      uri,
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -206,6 +226,7 @@ class _HomePageState extends State<HomePage> {
           'latitud': lugarJson['latitude'],
           'longitud': lugarJson['longitude'],
           'precio': lugarJson['hourly_rate'].toString(),
+          'rating': lugarJson['stars'].toString(),
           'image': lugarJson['image'] ?? '',
         });
       }).toList();
@@ -252,28 +273,32 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               MarkerLayer(
-                markers: nearbyPlaces.map((place) {
-                  final latLng = place['coordenadas'] as LatLng?;
-                  if (latLng == null) return null;
-                  return Marker(
-                    point: latLng,
-                    width: 40,
-                    height: 40,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedPlace = place;
-                        });
-                      },
-                      child: const Icon(
-                        Icons.garage,
-                        color: Colors.red,
-                        size: 40,
+                markers: [
+                  for (var place in nearbyPlaces)
+                    if (place['coordenadas'] != null)
+                      Marker(
+                        point: place['coordenadas'] as LatLng,
+                        width: 40,
+                        height: 40,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedPlace = place;
+                            });
+                          },
+                          child: const Icon(
+                            Icons.garage,
+                            color: Colors.red,
+                            size: 40,
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                }).whereType<Marker>().toList(),
+
+                  if (searchMarker != null)
+                    searchMarker!,
+                ],
               ),
+
             ],
           ),
 
@@ -315,58 +340,96 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            selectedPlace!['direccion'] ?? '',
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24), // para dejar espacio para las estrellas
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  selectedPlace!['direccion'] ?? '',
+                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedPlace = null;
+                                  });
+                                },
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 24,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedPlace = null;
-                            });
-                          },
-                          child: const Icon(
-                            Icons.close,
-                            size: 24,
-                            color: Colors.grey,
+                          const SizedBox(height: 8),
+                          if (selectedPlace!['imagen'] != null && selectedPlace!['imagen'] != '')
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                selectedPlace!['imagen'],
+                                height: 150,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                              ),
+                            ),
+                          const SizedBox(height: 8),
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/moreInfo');
+                              },
+                              child: const Text("Más información"),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (selectedPlace!['imagen'] != null && selectedPlace!['imagen'] != '')
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          selectedPlace!['imagen'],
-                          height: 150,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                        ),
+                        ],
                       ),
-                    const SizedBox(height: 8),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/moreInfo');
-                        },
-                        child: const Text("Más información"),
+                    ),
+                    // Aquí agregamos la cantidad de estrellas en la esquina superior izquierda
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              (selectedPlace!['estrellas'] ?? '5').toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+
 
 
           // Barra superior con logo
@@ -410,6 +473,10 @@ class _HomePageState extends State<HomePage> {
                         if (result != null && result is Map<String, dynamic>) {
                           final LatLng? coordenadas = result['coordenadas'];
                           final String? direccion = result['direccion'];
+                          final int? distancia = result['distancia'];
+                          final int? precio = result['precio'];
+                          final int? estrellas = result['estrellas'];
+
                           if (coordenadas != null) {
                             mapController.move(coordenadas, 15);
                             searchMarker = Marker(
@@ -418,7 +485,7 @@ class _HomePageState extends State<HomePage> {
                               height: 40,
                               child: const Icon(Icons.location_on, size: 40, color: Colors.blue),
                             );
-                            await loadNearbyPlaces(direccionCentro: direccion);
+                            await loadNearbyPlaces(direccion: direccion, coordenadas: coordenadas, distancia: distancia, precio: precio, estrellas: estrellas);
                           }
                         }
                       },
