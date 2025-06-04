@@ -20,19 +20,16 @@ class SearchPageState extends State<SearchPage> {
   final String _apiKey = 'pk.0340df42008e68b8520d43d331742ce1';
 
   int _starsIndex = 0;
-  int _priceIndex = 0;
-  int _distanceIndex = 0;
-
+  double _precioActual = 4500;
+  int _distanciaKm = 2;
   bool _showFilters = false;
 
   void _onChanged(String value) {
-    // Oculta filtros cuando escribís
     if (_showFilters) {
       setState(() {
         _showFilters = false;
       });
     }
-
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 700), () {
       _searchSuggestions(value);
@@ -85,9 +82,9 @@ class SearchPageState extends State<SearchPage> {
     final double lon = double.parse(suggestion['lon']);
     final String displayName = suggestion['display_name'];
 
-    int distanciaMetros = (_distanceIndex == 10) ? 1100 : (_distanceIndex + 1) * 100;
-    int? precioMax = (_priceIndex == 10) ? null : (_priceIndex + 1) * 500;
-    int estrellas = _starsIndex + 1;
+    int distanciaMetros = _distanciaKm * 500;
+    int? precioMax = _precioActual.round();
+    int estrellas = _starsIndex;
 
     Navigator.pop(context, {
       'coordenadas': LatLng(lat, lon),
@@ -109,37 +106,23 @@ class SearchPageState extends State<SearchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Estrellas',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(5, (index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: ChoiceChip(
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(
-                      index + 1,
-                          (_) => const Icon(Icons.star, size: 16, color: Colors.amber),
-                    ),
-                  ),
-                  selected: _starsIndex == index,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _starsIndex = index;
-                    });
-                  },
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                ),
-              );
-            }),
-          ),
+        const Text('Valoración', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+        const SizedBox(height: 8),
+        Row(
+          children: List.generate(5, (index) {
+            return IconButton(
+              icon: Icon(
+                index < _starsIndex ? Icons.star : Icons.star_border,
+                color: Colors.amber,
+                size: 28,
+              ),
+              onPressed: () {
+                setState(() {
+                  _starsIndex = index + 1;
+                });
+              },
+            );
+          }),
         ),
       ],
     );
@@ -149,33 +132,22 @@ class SearchPageState extends State<SearchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Precio máximo (ARS)',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        const Text('Precio máximo (ARS)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+        Slider(
+          value: _precioActual,
+          min: 1000,
+          max: 5500,
+          divisions: 9,
+          label: '\$${_precioActual.round()}',
+          activeColor: const Color(0xFF2196F3),
+          inactiveColor: Colors.black26,
+          onChanged: (value) {
+            setState(() {
+              _precioActual = value;
+            });
+          },
         ),
-        const SizedBox(height: 4),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List<Widget>.generate(11, (int index) {
-              final label = index < 10 ? '\$${(index + 1) * 500}' : '+\$5000';
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: ChoiceChip(
-                  label: Text(label, style: const TextStyle(fontSize: 12)),
-                  selected: _priceIndex == index,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _priceIndex = index;
-                    });
-                  },
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                ),
-              );
-            }),
-          ),
-        ),
+        Text('\$${_precioActual.round()}', style: const TextStyle(color: Colors.black)),
       ],
     );
   }
@@ -184,32 +156,29 @@ class SearchPageState extends State<SearchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Distancia (metros)',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        const Text('Distancia (cuadras aprox.)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+        Slider(
+          value: _distanciaKm.toDouble(),
+          min: 1,
+          max: 5,
+          divisions: 4,
+          label: '${_distanciaKm * 500} m',
+          activeColor: const Color(0xFF2196F3),
+          inactiveColor: Colors.black26,
+          onChanged: (value) {
+            setState(() {
+              _distanciaKm = value.toInt();
+            });
+          },
         ),
-        const SizedBox(height: 4),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List<Widget>.generate(11, (int index) {
-              final label = index < 10 ? '${(index + 1) * 100}' : '+1000';
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: ChoiceChip(
-                  label: Text(label, style: const TextStyle(fontSize: 12)),
-                  selected: _distanceIndex == index,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _distanceIndex = index;
-                    });
-                  },
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                ),
-              );
-            }),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(5, (index) {
+            return CircleAvatar(
+              radius: 8,
+              backgroundColor: _distanciaKm == index + 1 ? const Color(0xFF2196F3) : Colors.grey[300],
+            );
+          }),
         ),
       ],
     );
@@ -218,39 +187,54 @@ class SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Buscar dirección'),
+        title: const Text('Buscar dirección', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black),
+        elevation: 0.5,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _controller,
               onChanged: _onChanged,
-              decoration: const InputDecoration(
-                labelText: 'Dirección de destino',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+              style: const TextStyle(color: Colors.black),
+              decoration: InputDecoration(
+                hintText: 'Buscar...',
+                hintStyle: const TextStyle(color: Colors.black54),
+                prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                filled: true,
+                fillColor: Colors.black12,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
             const SizedBox(height: 12),
-
-            // Botón Filtros
-            ElevatedButton.icon(
-              icon: const Icon(Icons.filter_list),
-              label: const Text('Filtros'),
-              onPressed: () {
-                setState(() {
-                  _showFilters = !_showFilters;
-                });
-              },
-            ),
-
-            // Panel filtros - aparece solo si _showFilters == true
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              ElevatedButton.icon(
+                icon: const Icon(Icons.filter_list),
+                label: const Text('Filtros'),
+                onPressed: () {
+                  setState(() {
+                    _showFilters = !_showFilters;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2196F3),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+            const SizedBox(height: 12),
             if (_showFilters) ...[
-              const SizedBox(height: 12),
               _buildStarsFilter(),
               const SizedBox(height: 12),
               _buildPriceFilter(),
@@ -258,8 +242,6 @@ class SearchPageState extends State<SearchPage> {
               _buildDistanceFilter(),
               const SizedBox(height: 12),
             ],
-
-            // Resultado o loading
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
             else
