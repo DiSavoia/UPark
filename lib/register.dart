@@ -13,7 +13,7 @@ class _RegisterPageState extends State<RegisterPage> {
   static const primaryColor = Color(0xFF1E90FF);
   // This should be configured based on your environment
   // For physical devices, use your computer's IP address instead of localhost
-  static const apiBaseUrl = 'http://10.0.2.2:3100/api'; // For Android emulator
+  static const apiBaseUrl = 'http://18.218.68.253/api'; // For Android emulator
   // static const apiBaseUrl = 'http://YOUR_COMPUTER_IP:3200/api'; // For physical devices
 
   final usernameController = TextEditingController();
@@ -42,8 +42,11 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
+      final url = '$apiBaseUrl/users';
+      print('Making request to: $url');
+
       final response = await http.post(
-        Uri.parse('$apiBaseUrl/register'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username,
@@ -51,29 +54,39 @@ class _RegisterPageState extends State<RegisterPage> {
           'last_name': lastName,
           'phone': phone,
           'email': email,
-          'password': password,
+          'password_hash': password,
           'is_manager': isManager,
         }),
       );
 
-      final responseData = jsonDecode(response.body);
+      print('Response status: ${response.statusCode}');
+      // print('Response body: ${response.body}');
 
-      if (response.statusCode == 200 && responseData['success']) {
+      final responseData = jsonDecode(response.body);
+      print('Parsed response data: $responseData');
+      print('Success status: ${responseData['success']}');
+
+      if (response.statusCode == 201 && responseData['success']) {
         // Registration successful
+        final userData = responseData['data'];
+        print('User data extracted: $userData');
+
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Registro exitoso')));
 
+        print('Navigating to home with user data...');
         // Navigate to home and clear previous routes
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/home',
           (route) => false, // This clears all previous routes
           arguments: {
-            'username': '$firstName $lastName',
-            'email': email,
-            'phone': phone,
-            'is_manager': isManager,
+            'id': userData['id'],
+            'username': '${userData['first_name']} ${userData['last_name']}',
+            'email': userData['email'],
+            'phone': userData['phone'],
+            'is_manager': userData['is_manager'],
           },
         );
       } else {
@@ -88,6 +101,7 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     } catch (e) {
       // Network or other error
+      print('Network error: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error de conexión: $e')));

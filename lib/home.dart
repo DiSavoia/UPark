@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final Map<String, dynamic>? args =
-    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null && args.containsKey('is_manager')) {
       setState(() {
         isManager = args['is_manager'] ?? false;
@@ -112,7 +112,10 @@ class _HomePageState extends State<HomePage> {
 
     if (mounted) {
       setState(() {
-        currentLocation = LatLng(userLocation.latitude!, userLocation.longitude!);
+        currentLocation = LatLng(
+          userLocation.latitude!,
+          userLocation.longitude!,
+        );
         isLoading = false;
       });
 
@@ -147,7 +150,13 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
-  Future<void> loadNearbyPlaces({String? direccion, LatLng? coordenadas, int? distancia, int? precio, int? estrellas}) async {
+  Future<void> loadNearbyPlaces({
+    String? direccion,
+    LatLng? coordenadas,
+    int? distancia,
+    int? precio,
+    int? estrellas,
+  }) async {
     LatLng center;
 
     if (direccion != null) {
@@ -155,7 +164,9 @@ class _HomePageState extends State<HomePage> {
       if (coords == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No se pudo geocodificar la dirección')),
+            const SnackBar(
+              content: Text('No se pudo geocodificar la dirección'),
+            ),
           );
         }
         return;
@@ -167,7 +178,12 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final lugares = await obtenerLugaresDesdeBase(coordenadas: coordenadas, distancia: distancia, precio: precio, estrellas: estrellas);
+    final lugares = await obtenerLugaresDesdeBase(
+      coordenadas: coordenadas,
+      distancia: distancia,
+      precio: precio,
+      estrellas: estrellas,
+    );
     List<Map<String, dynamic>> lugaresT = [];
 
     for (var lugar in lugares) {
@@ -191,11 +207,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<List<Lugar>> obtenerLugaresDesdeBase({LatLng? coordenadas, int? distancia, int? precio, int? estrellas}) async {
+  Future<List<Lugar>> obtenerLugaresDesdeBase({
+    LatLng? coordenadas,
+    int? distancia,
+    int? precio,
+    int? estrellas,
+  }) async {
     final queryParameters = <String, String>{};
 
     if (coordenadas != null) {
-      queryParameters['coordenadas'] = '${coordenadas.latitude},${coordenadas.longitude}';
+      queryParameters['coordenadas'] =
+          '${coordenadas.latitude},${coordenadas.longitude}';
     }
 
     if (distancia != null) {
@@ -210,7 +232,9 @@ class _HomePageState extends State<HomePage> {
       queryParameters['estrellas'] = estrellas.toString();
     }
 
-    final uri = Uri.parse('$apiBaseUrl/parkings').replace(queryParameters: queryParameters);
+    final uri = Uri.parse(
+      '$apiBaseUrl/parkings',
+    ).replace(queryParameters: queryParameters);
 
     final response = await http.get(
       uri,
@@ -294,11 +318,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
 
-                  if (searchMarker != null)
-                    searchMarker!,
+                  if (searchMarker != null) searchMarker!,
                 ],
               ),
-
             ],
           ),
 
@@ -311,11 +333,17 @@ class _HomePageState extends State<HomePage> {
                 height: 70,
                 width: 70,
                 child: FloatingActionButton(
-                  onPressed: currentLocation == null ? null : userCurrentLocation,
+                  heroTag: "locationBtn",
+                  onPressed:
+                      currentLocation == null ? null : userCurrentLocation,
                   backgroundColor: Colors.blue,
                   elevation: 2,
                   shape: const CircleBorder(),
-                  child: const Icon(Icons.my_location, color: Colors.white, size: 30),
+                  child: const Icon(
+                    Icons.my_location,
+                    color: Colors.white,
+                    size: 30,
+                  ),
                 ),
               ),
             ),
@@ -343,7 +371,9 @@ class _HomePageState extends State<HomePage> {
                 child: Stack(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top: 24), // para dejar espacio para las estrellas
+                      padding: const EdgeInsets.only(
+                        top: 24,
+                      ), // para dejar espacio para las estrellas
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,7 +384,10 @@ class _HomePageState extends State<HomePage> {
                               Expanded(
                                 child: Text(
                                   selectedPlace!['direccion'] ?? '',
-                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               GestureDetector(
@@ -372,7 +405,8 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          if (selectedPlace!['imagen'] != null && selectedPlace!['imagen'] != '')
+                          if (selectedPlace!['imagen'] != null &&
+                              selectedPlace!['imagen'] != '')
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Image.network(
@@ -380,7 +414,9 @@ class _HomePageState extends State<HomePage> {
                                 height: 150,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                                errorBuilder:
+                                    (context, error, stackTrace) =>
+                                        const Icon(Icons.broken_image),
                               ),
                             ),
                           const SizedBox(height: 8),
@@ -400,7 +436,10 @@ class _HomePageState extends State<HomePage> {
                       top: 0,
                       left: 0,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.amber.shade100,
                           borderRadius: BorderRadius.circular(12),
@@ -429,8 +468,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-
-
 
           // Barra superior con logo
           Positioned(
@@ -469,7 +506,10 @@ class _HomePageState extends State<HomePage> {
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () async {
-                        final result = await Navigator.pushNamed(context, '/search');
+                        final result = await Navigator.pushNamed(
+                          context,
+                          '/search',
+                        );
                         if (result != null && result is Map<String, dynamic>) {
                           final LatLng? coordenadas = result['coordenadas'];
                           final String? direccion = result['direccion'];
@@ -483,16 +523,28 @@ class _HomePageState extends State<HomePage> {
                               point: coordenadas,
                               width: 40,
                               height: 40,
-                              child: const Icon(Icons.location_on, size: 40, color: Colors.blue),
+                              child: const Icon(
+                                Icons.location_on,
+                                size: 40,
+                                color: Colors.blue,
+                              ),
                             );
-                            await loadNearbyPlaces(direccion: direccion, coordenadas: coordenadas, distancia: distancia, precio: precio, estrellas: estrellas);
+                            await loadNearbyPlaces(
+                              direccion: direccion,
+                              coordenadas: coordenadas,
+                              distancia: distancia,
+                              precio: precio,
+                              estrellas: estrellas,
+                            );
                           }
                         }
                       },
                     ),
 
                     IconButton(
-                      icon: Icon(isManager ? Icons.people : Icons.shopping_cart),
+                      icon: Icon(
+                        isManager ? Icons.people : Icons.shopping_cart,
+                      ),
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
@@ -503,7 +555,9 @@ class _HomePageState extends State<HomePage> {
                         }
                       },
                     ),
-                    const SizedBox(width: 50), // espacio para el botón flotante central
+                    const SizedBox(
+                      width: 50,
+                    ), // espacio para el botón flotante central
                     IconButton(
                       icon: const Icon(Icons.message),
                       iconSize: 30,
@@ -527,6 +581,7 @@ class _HomePageState extends State<HomePage> {
             bottom: 35,
             left: MediaQuery.of(context).size.width / 2 - 28,
             child: FloatingActionButton(
+              heroTag: "floatingBtn",
               onPressed: () {
                 // Acción para botón central
               },
@@ -535,10 +590,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          if (isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
+          if (isLoading) const Center(child: CircularProgressIndicator()),
         ],
       ),
     );
