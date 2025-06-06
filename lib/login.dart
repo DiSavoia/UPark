@@ -12,7 +12,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   static const primaryColor = Color(0xFF1E90FF);
   // This should match the URL used in register.dart
-  static const apiBaseUrl = 'http://10.0.2.2:3100/api';
+  static const apiBaseUrl = 'http://18.218.68.253/api';
 
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -24,8 +24,11 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+      final url = '$apiBaseUrl/login';
+      print('Making login request to: $url');
+
       final response = await http.post(
-        Uri.parse('$apiBaseUrl/login'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': usernameController.text.trim(),
@@ -33,11 +36,14 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
+      print('Login response status: ${response.statusCode}');
+      print('Login response body: ${response.body}');
+
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 && responseData['success']) {
         // Login successful
-        final user = responseData['user'];
+        final user = responseData['data'];
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Inicio de sesión exitoso')),
         );
@@ -48,7 +54,8 @@ class _LoginPageState extends State<LoginPage> {
           '/home',
           (route) => false, // This clears all previous routes
           arguments: {
-            'username': user['username'],
+            'id': user['id'],
+            'username': '${user['first_name']} ${user['last_name']}',
             'email': user['email'] ?? 'nombreapellido@gmail.com',
             'phone': user['phone'] ?? '+54 11 1234-5678',
             'is_manager': user['is_manager'] ?? false,
@@ -66,6 +73,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       // Network or other error
+      print('Login network error: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error de conexión: $e')));

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:bcrypt/bcrypt.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -45,6 +46,10 @@ class _RegisterPageState extends State<RegisterPage> {
       final url = '$apiBaseUrl/users';
       print('Making request to: $url');
 
+      // Hash the password using bcrypt before sending to server
+      final hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+      print('Password hashed with bcrypt successfully');
+
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -54,7 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
           'last_name': lastName,
           'phone': phone,
           'email': email,
-          'password_hash': password,
+          'password_hash': hashedPassword,
           'is_manager': isManager,
         }),
       );
