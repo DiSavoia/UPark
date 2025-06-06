@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+// import authRoutes from "./routes/auth.js";
 
 dotenv.config();
 const { Pool } = pkg;
@@ -470,7 +471,7 @@ app.post("/api/request-reset", async (req, res) => {
       [token, expires, hash, email]
     );
 
-    const confirmLink = `${process.env.BASE_URL}/api/confirm-reset/${token}`;
+    const confirmLink = `http://18.218.68.253/api/confirm-reset/${token}`;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,

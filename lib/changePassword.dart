@@ -11,7 +11,7 @@ class ChangePasswordPage extends StatefulWidget {
 
 class _ChangePasswordPageState extends State<ChangePasswordPage> {
   static const primaryColor = Color(0xFF1E90FF);
-  static const apiBaseUrl = 'http://10.0.2.2:3100/api';
+  static const apiBaseUrl = 'http://18.218.68.253/api';
 
   final emailController = TextEditingController();
   final newPasswordController = TextEditingController();
@@ -60,8 +60,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     });
 
     try {
+      final url = '$apiBaseUrl/request-reset';
+      print('Making password reset request to: $url');
+
       final response = await http.post(
-        Uri.parse('$apiBaseUrl/request-reset'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -69,6 +72,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           'confirmPassword': pass2,
         }),
       );
+
+      print('Password reset response status: ${response.statusCode}');
+      print('Password reset response body: ${response.body}');
 
       final responseData = jsonDecode(response.body);
 
@@ -102,6 +108,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         );
       }
     } catch (e) {
+      print('Password reset network error: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error de conexión: $e')));
