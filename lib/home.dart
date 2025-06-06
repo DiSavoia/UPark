@@ -52,6 +52,12 @@ class _HomePageState extends State<HomePage> {
   bool isManager = false;
   Marker? searchMarker;
 
+  // User data for profile
+  String username = 'Nombre Apellido';
+  String email = 'nombreapellido@gmail.com';
+  String phone = '+54 11 1234-5678';
+  int? userId;
+
   List<Map<String, dynamic>> nearbyPlaces = [];
   Map<String, dynamic>? selectedPlace;
   static const apiBaseUrl = 'http://18.218.68.253/api';
@@ -69,9 +75,13 @@ class _HomePageState extends State<HomePage> {
     super.didChangeDependencies();
     final Map<String, dynamic>? args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    if (args != null && args.containsKey('is_manager')) {
+    if (args != null) {
       setState(() {
         isManager = args['is_manager'] ?? false;
+        username = args['username'] ?? 'Nombre Apellido';
+        email = args['email'] ?? 'nombreapellido@gmail.com';
+        phone = args['phone'] ?? '+54 11 1234-5678';
+        userId = args['id'];
       });
     }
   }
@@ -568,7 +578,18 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.person),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed: () => Navigator.pushNamed(context, '/profile'),
+                      onPressed:
+                          () => Navigator.pushNamed(
+                            context,
+                            '/profile',
+                            arguments: {
+                              'id': userId,
+                              'username': username,
+                              'email': email,
+                              'phone': phone,
+                              'is_manager': isManager,
+                            },
+                          ),
                     ),
                   ],
                 ),

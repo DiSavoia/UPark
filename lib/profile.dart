@@ -11,7 +11,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String username = 'Nombre Apellido';
   String phone = '+54 11 1234-5678';
   String email = 'nombreapellido@gmail.com';
-  
+
   // Datos del vehículo (inventados)
   String marca = '';
   String modelo = '';
@@ -27,7 +27,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _loadUserData() {
-    final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final Map<String, dynamic>? args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
       setState(() {
         username = args['username'] ?? 'Nombre Apellido';
@@ -46,8 +47,22 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 20)),
-              Text('Mi cuenta', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
+              Text(
+                'UPARK',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                  fontSize: 20,
+                ),
+              ),
+              Text(
+                'Mi cuenta',
+                style: TextStyle(
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),
@@ -62,23 +77,16 @@ class _ProfilePageState extends State<ProfilePage> {
             CircleAvatar(
               radius: 50,
               backgroundColor: Colors.black,
-              child: Icon(
-                Icons.person_outline,
-                size: 70,
-                color: Colors.white,
-              ),
+              child: Icon(Icons.person_outline, size: 70, color: Colors.white),
             ),
             SizedBox(height: 10),
             // Nombre
             Text(
               username,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
-            
+
             // Datos Personales
             Container(
               width: double.infinity,
@@ -92,13 +100,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
-                  'Datos Personales',
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: Text('Datos Personales', style: TextStyle(fontSize: 16)),
               ),
             ),
-            
+
             // Información de contacto
             Container(
               width: double.infinity,
@@ -107,14 +112,27 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(phone),
-                  Text(email),
+                  Row(
+                    children: [
+                      Icon(Icons.phone, size: 16, color: Colors.grey),
+                      SizedBox(width: 8),
+                      Text(phone, style: TextStyle(fontSize: 14)),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.email, size: 16, color: Colors.grey),
+                      SizedBox(width: 8),
+                      Text(email, style: TextStyle(fontSize: 14)),
+                    ],
+                  ),
                 ],
               ),
             ),
-            
+
             SizedBox(height: 10),
-            
+
             // Datos Vehículo
             Container(
               width: double.infinity,
@@ -128,13 +146,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
-                  'Datos Vehículo',
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: Text('Datos Vehículo', style: TextStyle(fontSize: 16)),
               ),
             ),
-            
+
             // Información de vehículo
             Container(
               width: double.infinity,
@@ -142,11 +157,7 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Marca:'),
-                  Text('Modelo:'),
-                  Text('Patente:'),
-                ],
+                children: [Text('Marca:'), Text('Modelo:'), Text('Patente:')],
               ),
             ),
           ],
