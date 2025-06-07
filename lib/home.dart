@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
@@ -313,18 +314,43 @@ class _HomePageState extends State<HomePage> {
                     if (place['coordenadas'] != null)
                       Marker(
                         point: place['coordenadas'] as LatLng,
-                        width: 40,
-                        height: 40,
+                        width: 50,
+                        height: 60,
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
                               selectedPlace = place;
                             });
                           },
-                          child: const Icon(
-                            Icons.garage,
-                            color: Colors.red,
-                            size: 40,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blue.withOpacity(0.3),
+                                      spreadRadius: 2,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.local_parking,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              CustomPaint(
+                                size: Size(10, 10),
+                                painter: ArrowPainter(),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -617,4 +643,25 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+
+class ArrowPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = Colors.blue
+          ..style = PaintingStyle.fill;
+
+    final path = ui.Path();
+    path.moveTo(size.width / 2, size.height);
+    path.lineTo(0, 0);
+    path.lineTo(size.width, 0);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
