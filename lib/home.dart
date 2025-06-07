@@ -68,6 +68,12 @@ class _HomePageState extends State<HomePage> {
     locationService = location.Location();
     mapController = MapController();
     requestPermissions();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (currentLocation == null) {
+        loadNearbyPlaces();
+      }
+    });
   }
 
   @override
@@ -130,6 +136,8 @@ class _HomePageState extends State<HomePage> {
       });
 
       mapController.move(currentLocation!, 15);
+
+      await loadNearbyPlaces();
     }
   }
 
@@ -167,53 +175,61 @@ class _HomePageState extends State<HomePage> {
     int? precio,
     int? estrellas,
   }) async {
-    LatLng center;
+    try {
+      LatLng? center;
 
-    if (direccion != null) {
-      final coords = await geocodeAddress(direccion);
-      if (coords == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No se pudo geocodificar la dirección'),
-            ),
-          );
+      if (direccion != null) {
+        final coords = await geocodeAddress(direccion);
+        if (coords == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('No se pudo geocodificar la dirección'),
+              ),
+            );
+          }
+          return;
         }
-        return;
+        center = coords;
+      } else if (currentLocation != null) {
+        center = currentLocation!;
       }
-      center = coords;
-    } else if (currentLocation != null) {
-      center = currentLocation!;
-    } else {
-      return;
-    }
 
-    final lugares = await obtenerLugaresDesdeBase(
-      coordenadas: coordenadas,
-      distancia: distancia,
-      precio: precio,
-      estrellas: estrellas,
-    );
-    List<Map<String, dynamic>> lugaresT = [];
+      final lugares = await obtenerLugaresDesdeBase(
+        coordenadas: coordenadas,
+        distancia: distancia,
+        precio: precio,
+        estrellas: estrellas,
+      );
 
-    for (var lugar in lugares) {
-      lugaresT.add({
-        'direccion': lugar.direccion,
-        'coordenadas': lugar.coordenadas,
-        'precio': lugar.precio,
-        'estrellas': lugar.estrellas,
-        'imagen': lugar.imagenUrl,
-      });
-    }
+      List<Map<String, dynamic>> lugaresT = [];
 
-    if (mounted) {
-      setState(() {
-        nearbyPlaces = lugaresT;
-        if (direccion != null) {
-          mapController.move(center, 15);
-        }
-        selectedPlace = null;
-      });
+      for (var lugar in lugares) {
+        lugaresT.add({
+          'direccion': lugar.direccion,
+          'coordenadas': lugar.coordenadas,
+          'precio': lugar.precio,
+          'estrellas': lugar.estrellas,
+          'imagen': lugar.imagenUrl,
+        });
+      }
+
+      if (mounted) {
+        setState(() {
+          nearbyPlaces = lugaresT;
+          if (direccion != null && center != null) {
+            mapController.move(center, 15);
+          }
+          selectedPlace = null;
+        });
+      }
+    } catch (e) {
+      print('Error loading parkings: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al cargar estacionamientos')),
+        );
+      }
     }
   }
 
@@ -223,28 +239,7 @@ class _HomePageState extends State<HomePage> {
     int? precio,
     int? estrellas,
   }) async {
-    final queryParameters = <String, String>{};
-
-    if (coordenadas != null) {
-      queryParameters['coordenadas'] =
-          '${coordenadas.latitude},${coordenadas.longitude}';
-    }
-
-    if (distancia != null) {
-      queryParameters['distancia'] = distancia.toString();
-    }
-
-    if (precio != null) {
-      queryParameters['precio'] = precio.toString();
-    }
-
-    if (estrellas != null) {
-      queryParameters['estrellas'] = estrellas.toString();
-    }
-
-    final uri = Uri.parse(
-      '$apiBaseUrl/parkings',
-    ).replace(queryParameters: queryParameters);
+    final uri = Uri.parse('$apiBaseUrl/parkings');
 
     final response = await http.get(
       uri,
@@ -252,18 +247,24 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
+      final Map<String, dynamic> responseData = json.decode(response.body);
 
-      return data.map<Lugar>((lugarJson) {
-        return Lugar.fromMap({
-          'direccion': lugarJson['address'],
-          'latitud': lugarJson['latitude'],
-          'longitud': lugarJson['longitude'],
-          'precio': lugarJson['hourly_rate'].toString(),
-          'rating': lugarJson['stars'].toString(),
-          'image': lugarJson['image'] ?? '',
-        });
-      }).toList();
+      if (responseData['success'] == true && responseData['data'] != null) {
+        final List<dynamic> data = responseData['data'];
+
+        return data.map<Lugar>((lugarJson) {
+          return Lugar.fromMap({
+            'direccion': lugarJson['address'] ?? 'Dirección no disponible',
+            'latitud': double.parse(lugarJson['latitude'].toString()),
+            'longitud': double.parse(lugarJson['longitude'].toString()),
+            'precio': '\$${lugarJson['hourly_rate']}/hr',
+            'estrllas': lugarJson['average_rating'].toString(),
+            'image': lugarJson['image'] ?? '',
+          });
+        }).toList();
+      } else {
+        throw Exception('Respuesta inválida del servidor');
+      }
     } else {
       throw Exception('Error al obtener los lugares desde la base de datos');
     }

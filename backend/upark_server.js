@@ -194,7 +194,17 @@ app.delete("/api/users/:id", async (req, res) => {
 
 app.get("/api/parkings", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM parkings");
+    const result = await pool.query(`
+      SELECT 
+        p.*,
+        COALESCE(ROUND(AVG(r.rating), 1), 5.0) as average_rating,
+        COUNT(r.id) as review_count
+      FROM parkings p
+      LEFT JOIN review r ON p.id = r.parking_id
+      WHERE p.is_active = true
+      GROUP BY p.id
+      ORDER BY p.created_at DESC
+    `);
     res.json({ success: true, data: result.rows });
   } catch (err) {
     console.error(err);
