@@ -38,7 +38,7 @@ class Lugar {
         (map['longitud'] as num).toDouble(),
       ),
       precio: map['precio'] ?? '',
-      estrellas: map['estrllas'] ?? '',
+      estrellas: map['estrellas'] ?? '',
       imagenUrl: map['image'] ?? '',
     );
   }
@@ -226,7 +226,7 @@ class _HomePageState extends State<HomePage> {
           'latitud': lugarJson['latitude'],
           'longitud': lugarJson['longitude'],
           'precio': lugarJson['hourly_rate'].toString(),
-          'rating': lugarJson['stars'].toString(),
+          'estrellas': lugarJson['rating'].toString(),
           'image': lugarJson['image'] ?? '',
         });
       }).toList();
@@ -286,11 +286,29 @@ class _HomePageState extends State<HomePage> {
                               selectedPlace = place;
                             });
                           },
-                          child: const Icon(
-                            Icons.garage,
-                            color: Colors.red,
-                            size: 40,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha((0.3 * 255).round()),
+                                  blurRadius: 4,
+                                  offset: const Offset(2, 2),
+                                )
+                              ],
+                            ),
+                            child: Text(
+                              '\$${place['precio']}',
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
+
                         ),
                       ),
 
