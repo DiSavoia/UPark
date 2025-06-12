@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:location/location.dart' as location;
+import 'package:upark/search.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -44,6 +45,18 @@ class Lugar {
   }
 }
 
+class Filtro {
+  final int starsIndex;
+  final double precioActual;
+  final int distanciaKm;
+
+  Filtro({
+    required this.starsIndex,
+    required this.precioActual,
+    required this.distanciaKm,
+  });
+}
+
 class _HomePageState extends State<HomePage> {
   late location.Location locationService;
   late MapController mapController;
@@ -51,6 +64,7 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   bool isManager = false;
   Marker? searchMarker;
+  Filtro filtroActual = Filtro(starsIndex: 5, precioActual: 5500, distanciaKm: 5);
 
   List<Map<String, dynamic>> nearbyPlaces = [];
   Map<String, dynamic>? selectedPlace;
@@ -132,7 +146,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<LatLng?> geocodeAddress(String direccion) async {
     final url = Uri.parse(
-      'https://nominatim.openstreetmap.org/search?q=$direccion&format=json&limit=1',
+      'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(direccion)}&format=json&limit=1',
     );
     final response = await http.get(url);
 
@@ -243,6 +257,23 @@ class _HomePageState extends State<HomePage> {
         statusBarIconBrightness: Brightness.dark,
       ),
     );
+
+    void actualizarFiltro(Map<String, dynamic> filtroMap) {
+      final starsIndex = filtroMap['starsIndex'] as int?;
+      final precioActual = filtroMap['precioActual'] as double?;
+      final distanciaKm = filtroMap['distanciaKm'] as int?;
+
+      if (starsIndex != null && precioActual != null && distanciaKm != null) {
+        setState(() {
+          filtroActual = Filtro(
+            starsIndex: starsIndex,
+            precioActual: precioActual,
+            distanciaKm: distanciaKm,
+          );
+        });
+      }
+    }
+
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -413,7 +444,7 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                    // Aquí agregamos la cantidad de estrellas en la esquina superior izquierda
+
                     Positioned(
                       top: 0,
                       left: 0,
@@ -487,13 +518,28 @@ class _HomePageState extends State<HomePage> {
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () async {
-                        final result = await Navigator.pushNamed(context, '/search');
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SearchPage(
+                              starsIndex: filtroActual.starsIndex,
+                              precioActual: filtroActual.precioActual,
+                              distanciaKm: filtroActual.distanciaKm,
+                            ),
+                          ),
+                        );
+
                         if (result != null && result is Map<String, dynamic>) {
                           final LatLng? coordenadas = result['coordenadas'];
                           final String? direccion = result['direccion'];
                           final int? distancia = result['distancia'];
                           final int? precio = result['precio'];
                           final int? estrellas = result['estrellas'];
+                          final Map<String, dynamic>? filtroMap = result['filtros'];
+
+                          if (filtroMap != null) {
+                            actualizarFiltro(filtroMap);
+                          }
 
                           if (coordenadas != null) {
                             mapController.move(coordenadas, 15);

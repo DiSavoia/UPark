@@ -5,7 +5,17 @@ import 'dart:async';
 import 'package:latlong2/latlong.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final int starsIndex;
+  final double precioActual;
+  final int distanciaKm;
+
+  const SearchPage({
+    super.key,
+    required this.starsIndex,
+    required this.precioActual,
+    required this.distanciaKm,
+  });
+
 
   @override
   SearchPageState createState() => SearchPageState();
@@ -17,12 +27,21 @@ class SearchPageState extends State<SearchPage> {
   bool _isLoading = false;
   Timer? _debounce;
 
+
   final String _apiKey = 'pk.0340df42008e68b8520d43d331742ce1';
 
-  int _starsIndex = 0;
-  double _precioActual = 4500;
-  int _distanciaKm = 2;
+  late int _starsIndex;
+  late double _precioActual;
+  late int _distanciaKm;
   bool _showFilters = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _starsIndex = widget.starsIndex;
+    _precioActual = widget.precioActual;
+    _distanciaKm = widget.distanciaKm;
+  }
 
   void _onChanged(String value) {
     if (_showFilters) {
@@ -92,6 +111,11 @@ class SearchPageState extends State<SearchPage> {
       'distancia': distanciaMetros,
       'precio': precioMax,
       'estrellas': estrellas,
+      'filtros': {
+        'starsIndex': _starsIndex,
+        'precioActual': _precioActual,
+        'distanciaKm': _distanciaKm,
+      }
     });
   }
 

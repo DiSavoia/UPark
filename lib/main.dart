@@ -5,7 +5,6 @@ import 'home.dart';
 import 'login.dart';
 import 'register.dart';
 import 'changePassword.dart';
-import 'search.dart';
 import 'settings.dart';
 import 'favorites.dart';
 import 'profile.dart';
@@ -35,7 +34,6 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/changePassword': (context) => const ChangePasswordPage(),
         '/home': (context) => const HomePage(),
-        '/search': (context) => const SearchPage(),
         '/settings': (context) => const SettingsPage(),
         '/favorites': (context) => const Favorites(),
         '/profile': (context) => const ProfilePage(),
