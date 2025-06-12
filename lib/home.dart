@@ -446,6 +446,45 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                           const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.attach_money,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                selectedPlace!['precio'] != null
+                                    ? selectedPlace!['precio'].toString()
+                                    : 'N/A',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.local_parking,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                selectedPlace!['capacidad'] != null
+                                    ? selectedPlace!['capacidad'].toString()
+                                    : 'N/A',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
                           if (selectedPlace!['imagen'] != null &&
                               selectedPlace!['imagen'] != '')
                             ClipRRect(
@@ -555,8 +594,9 @@ class _HomePageState extends State<HomePage> {
                           final LatLng? coordenadas = result['coordenadas'];
                           final String? direccion = result['direccion'];
                           final int? distancia = result['distancia'];
-                          final int? precio = result['precio'];
+                          final double? precio = result['precio'];
                           final int? estrellas = result['estrellas'];
+                          final int? capacidad = result['capacidad'];
 
                           if (coordenadas != null) {
                             mapController.move(coordenadas, 15);
@@ -566,6 +606,7 @@ class _HomePageState extends State<HomePage> {
                                 'coordenadas': coordenadas,
                                 'precio': precio,
                                 'estrellas': estrellas,
+                                'capacidad': capacidad,
                                 'imagen': null,
                               };
                             });

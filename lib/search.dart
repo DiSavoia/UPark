@@ -111,14 +111,35 @@ class SearchPageState extends State<SearchPage> {
       }
     }
 
+    // Parse price and capacity
+    double? precio;
+    if (parking['hourly_rate'] != null) {
+      if (parking['hourly_rate'] is num) {
+        precio = (parking['hourly_rate'] as num).toDouble();
+      } else if (parking['hourly_rate'] is String) {
+        precio = double.tryParse(parking['hourly_rate']);
+      }
+    }
+    int? capacidad;
+    if (parking['total_spaces'] != null) {
+      if (parking['total_spaces'] is int) {
+        capacidad = parking['total_spaces'];
+      } else if (parking['total_spaces'] is String) {
+        capacidad = int.tryParse(parking['total_spaces']);
+      } else if (parking['total_spaces'] is double) {
+        capacidad = (parking['total_spaces'] as double).toInt();
+      }
+    }
+
     if (latDouble != null && lonDouble != null) {
       Navigator.pop(context, {
         'coordenadas': LatLng(latDouble, lonDouble),
         'direccion':
             parking['address'] ?? parking['name'] ?? 'Unknown location',
-        'distancia': _distanciaKm * 500,
-        'precio': _precioActual.round(),
-        'estrellas': _starsIndex,
+        'precio': precio,
+        'capacidad': capacidad,
+        'estrellas': 5, // default
+        'imagen': null,
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
