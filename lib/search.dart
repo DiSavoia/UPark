@@ -85,18 +85,48 @@ class SearchPageState extends State<SearchPage> {
   }
 
   void _selectParking(dynamic parking) {
-    final double? lat = parking['latitude']?.toDouble();
-    final double? lon = parking['longitude']?.toDouble();
+    final lat = parking['latitude'];
+    final lon = parking['longitude'];
 
-    if (lat != null && lon != null) {
+    double? latDouble;
+    double? lonDouble;
+
+    if (lat != null) {
+      if (lat is double) {
+        latDouble = lat;
+      } else if (lat is String) {
+        latDouble = double.tryParse(lat);
+      } else if (lat is int) {
+        latDouble = lat.toDouble();
+      }
+    }
+
+    if (lon != null) {
+      if (lon is double) {
+        lonDouble = lon;
+      } else if (lon is String) {
+        lonDouble = double.tryParse(lon);
+      } else if (lon is int) {
+        lonDouble = lon.toDouble();
+      }
+    }
+
+    if (latDouble != null && lonDouble != null) {
       Navigator.pop(context, {
-        'coordenadas': LatLng(lat, lon),
+        'coordenadas': LatLng(latDouble, lonDouble),
         'direccion':
             parking['address'] ?? parking['name'] ?? 'Unknown location',
         'distancia': _distanciaKm * 500,
         'precio': _precioActual.round(),
         'estrellas': _starsIndex,
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ubicación no disponible para este estacionamiento'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

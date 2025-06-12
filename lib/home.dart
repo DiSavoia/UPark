@@ -311,7 +311,12 @@ class _HomePageState extends State<HomePage> {
               MarkerLayer(
                 markers: [
                   for (var place in nearbyPlaces)
-                    if (place['coordenadas'] != null)
+                    if (place['coordenadas'] != null &&
+                        (searchMarker == null ||
+                            (place['coordenadas'].latitude !=
+                                    searchMarker!.point.latitude ||
+                                place['coordenadas'].longitude !=
+                                    searchMarker!.point.longitude)))
                       Marker(
                         point: place['coordenadas'] as LatLng,
                         width: 50,
@@ -354,7 +359,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-
                   if (searchMarker != null) searchMarker!,
                 ],
               ),
@@ -556,23 +560,15 @@ class _HomePageState extends State<HomePage> {
 
                           if (coordenadas != null) {
                             mapController.move(coordenadas, 15);
-                            searchMarker = Marker(
-                              point: coordenadas,
-                              width: 40,
-                              height: 40,
-                              child: const Icon(
-                                Icons.location_on,
-                                size: 40,
-                                color: Colors.blue,
-                              ),
-                            );
-                            await loadNearbyPlaces(
-                              direccion: direccion,
-                              coordenadas: coordenadas,
-                              distancia: distancia,
-                              precio: precio,
-                              estrellas: estrellas,
-                            );
+                            setState(() {
+                              selectedPlace = {
+                                'direccion': direccion,
+                                'coordenadas': coordenadas,
+                                'precio': precio,
+                                'estrellas': estrellas,
+                                'imagen': null,
+                              };
+                            });
                           }
                         }
                       },
