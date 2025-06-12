@@ -13,91 +13,95 @@ class SearchPage extends StatefulWidget {
 
 class SearchPageState extends State<SearchPage> {
   final TextEditingController _controller = TextEditingController();
-  List<dynamic> _suggestions = [];
+  List<dynamic> _allParkings = [];
+  List<dynamic> _filteredParkings = [];
   bool _isLoading = false;
-  Timer? _debounce;
 
-  final String _apiKey = 'pk.0340df42008e68b8520d43d331742ce1';
+  static const String apiBaseUrl = 'http://18.218.68.253/api';
 
   int _starsIndex = 0;
   double _precioActual = 4500;
   int _distanciaKm = 2;
   bool _showFilters = false;
 
-  void _onChanged(String value) {
-    if (_showFilters) {
-      setState(() {
-        _showFilters = false;
-      });
-    }
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 700), () {
-      _searchSuggestions(value);
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadAllParkings();
   }
 
-  void _searchSuggestions(String value) async {
-    if (value.length < 3) {
-      setState(() {
-        _suggestions = [];
-      });
-      return;
-    }
-
+  void _loadAllParkings() async {
     setState(() {
       _isLoading = true;
     });
 
-    final url = Uri.parse(
-      'https://us1.locationiq.com/v1/search?key=$_apiKey&q=$value&format=json&limit=5',
-    );
-
     try {
-      final response = await http.get(url);
+      final response = await http.get(Uri.parse('$apiBaseUrl/parkings'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        setState(() {
-          _suggestions = data;
-          _isLoading = false;
-        });
+        if (data['success']) {
+          setState(() {
+            _allParkings = data['data'];
+            _filteredParkings = List.from(_allParkings);
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       } else {
         setState(() {
           _isLoading = false;
-          _suggestions = [];
         });
-        debugPrint("Error ${response.statusCode}: ${response.body}");
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _suggestions = [];
       });
-      debugPrint("Error al consultar LocationIQ: $e");
+      debugPrint("Error loading parkings: $e");
     }
   }
 
-  void _selectSuggestion(dynamic suggestion) {
-    final double lat = double.parse(suggestion['lat']);
-    final double lon = double.parse(suggestion['lon']);
-    final String displayName = suggestion['display_name'];
+  void _onChanged(String value) {
+    if (value.trim().isEmpty) {
+      setState(() {
+        _filteredParkings = List.from(_allParkings);
+      });
+    } else {
+      setState(() {
+        _filteredParkings =
+            _allParkings.where((parking) {
+              final name = (parking['name'] ?? '').toString().toLowerCase();
+              final address =
+                  (parking['address'] ?? '').toString().toLowerCase();
+              final searchTerm = value.toLowerCase();
 
-    int distanciaMetros = _distanciaKm * 500;
-    int? precioMax = _precioActual.round();
-    int estrellas = _starsIndex;
+              return name.contains(searchTerm) || address.contains(searchTerm);
+            }).toList();
+      });
+    }
+  }
 
-    Navigator.pop(context, {
-      'coordenadas': LatLng(lat, lon),
-      'direccion': displayName,
-      'distancia': distanciaMetros,
-      'precio': precioMax,
-      'estrellas': estrellas,
-    });
+  void _selectParking(dynamic parking) {
+    final double? lat = parking['latitude']?.toDouble();
+    final double? lon = parking['longitude']?.toDouble();
+
+    if (lat != null && lon != null) {
+      Navigator.pop(context, {
+        'coordenadas': LatLng(lat, lon),
+        'direccion':
+            parking['address'] ?? parking['name'] ?? 'Unknown location',
+        'distancia': _distanciaKm * 500,
+        'precio': _precioActual.round(),
+        'estrellas': _starsIndex,
+      });
+    }
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -106,7 +110,14 @@ class SearchPageState extends State<SearchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Valoración', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+        const Text(
+          'Valoración mínima',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
         const SizedBox(height: 8),
         Row(
           children: List.generate(5, (index) {
@@ -132,7 +143,14 @@ class SearchPageState extends State<SearchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Precio máximo (ARS)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+        const Text(
+          'Precio máximo (ARS)',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
         Slider(
           value: _precioActual,
           min: 1000,
@@ -147,40 +165,98 @@ class SearchPageState extends State<SearchPage> {
             });
           },
         ),
-        Text('\$${_precioActual.round()}', style: const TextStyle(color: Colors.black)),
+        Text(
+          '\$${_precioActual.round()}',
+          style: const TextStyle(color: Colors.black),
+        ),
       ],
     );
   }
 
-  Widget _buildDistanceFilter() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Distancia (cuadras aprox.)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-        Slider(
-          value: _distanciaKm.toDouble(),
-          min: 1,
-          max: 5,
-          divisions: 4,
-          label: '${_distanciaKm * 500} m',
-          activeColor: const Color(0xFF2196F3),
-          inactiveColor: Colors.black26,
-          onChanged: (value) {
-            setState(() {
-              _distanciaKm = value.toInt();
-            });
-          },
+  Widget _buildParkingCard(dynamic parking) {
+    final rating = parking['average_rating'] ?? 5.0;
+    final reviewCount = parking['review_count'] ?? 0;
+    final price = parking['hourly_rate']?.toString() ?? 'N/A';
+    final address = parking['address'] ?? 'Sin dirección';
+    final name = parking['name'] ?? 'Sin nombre';
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () => _selectParking(parking),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          address,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Icon(Icons.star, color: Colors.amber, size: 20),
+                        ],
+                      ),
+                      Text(
+                        '\$$price/h',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              if (reviewCount > 0) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '$reviewCount reseñas',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ],
+          ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(5, (index) {
-            return CircleAvatar(
-              radius: 8,
-              backgroundColor: _distanciaKm == index + 1 ? const Color(0xFF2196F3) : Colors.grey[300],
-            );
-          }),
-        ),
-      ],
+      ),
     );
   }
 
@@ -189,7 +265,10 @@ class SearchPageState extends State<SearchPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Buscar dirección', style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'Buscar estacionamientos',
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         elevation: 0.5,
@@ -203,7 +282,7 @@ class SearchPageState extends State<SearchPage> {
               onChanged: _onChanged,
               style: const TextStyle(color: Colors.black),
               decoration: InputDecoration(
-                hintText: 'Buscar...',
+                hintText: 'Buscar por nombre o dirección...',
                 hintStyle: const TextStyle(color: Colors.black54),
                 prefixIcon: const Icon(Icons.search, color: Colors.black54),
                 filled: true,
@@ -215,45 +294,59 @@ class SearchPageState extends State<SearchPage> {
               ),
             ),
             const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.filter_list),
-                label: const Text('Filtros'),
-                onPressed: () {
-                  setState(() {
-                    _showFilters = !_showFilters;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
-                  foregroundColor: Colors.white,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.filter_list),
+                  label: const Text('Filtros'),
+                  onPressed: () {
+                    setState(() {
+                      _showFilters = !_showFilters;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2196F3),
+                    foregroundColor: Colors.white,
+                  ),
                 ),
-              ),
-            ],
-          ),
+                Text(
+                  '${_filteredParkings.length} resultados',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             if (_showFilters) ...[
               _buildStarsFilter(),
               const SizedBox(height: 12),
               _buildPriceFilter(),
               const SizedBox(height: 12),
-              _buildDistanceFilter(),
-              const SizedBox(height: 12),
             ],
             if (_isLoading)
-              const Center(child: CircularProgressIndicator())
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (_filteredParkings.isEmpty)
+              const Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off, size: 64, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(
+                        'No se encontraron estacionamientos',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              )
             else
               Expanded(
                 child: ListView.builder(
-                  itemCount: _suggestions.length,
+                  itemCount: _filteredParkings.length,
                   itemBuilder: (context, index) {
-                    final suggestion = _suggestions[index];
-                    return ListTile(
-                      title: Text(suggestion['display_name']),
-                      onTap: () => _selectSuggestion(suggestion),
-                    );
+                    return _buildParkingCard(_filteredParkings[index]);
                   },
                 ),
               ),
