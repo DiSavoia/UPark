@@ -12,8 +12,22 @@ class Favorites extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 20)),
-              Text('Favoritos', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
+              Text(
+                'UPARK',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                  fontSize: 20,
+                ),
+              ),
+              Text(
+                'Favoritos',
+                style: TextStyle(
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),
@@ -91,10 +105,7 @@ class Favorites extends StatelessWidget {
               children: [
                 Text(
                   'Nombre - Calle 123',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 16),
                 ElevatedButton(

@@ -579,16 +579,14 @@ class _HomePageState extends State<HomePage> {
                     ),
 
                     IconButton(
-                      icon: Icon(
-                        isManager ? Icons.people : Icons.shopping_cart,
-                      ),
+                      icon: Icon(isManager ? Icons.people : Icons.favorite),
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
                         if (isManager) {
                           Navigator.pushNamed(context, '/usuarios');
                         } else {
-                          Navigator.pushNamed(context, '/reservas');
+                          Navigator.pushNamed(context, '/favorites');
                         }
                       },
                     ),
