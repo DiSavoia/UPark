@@ -167,11 +167,6 @@ class _HomePageState extends State<HomePage> {
     if (direccion != null) {
       final coords = await geocodeAddress(direccion);
       if (coords == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No se pudo geocodificar la dirección')),
-          );
-        }
         return;
       }
       center = coords;
