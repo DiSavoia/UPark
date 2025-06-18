@@ -19,14 +19,16 @@ class HomePage extends StatefulWidget {
 class Lugar {
   final String direccion;
   final LatLng coordenadas;
-  final String precio;
-  final String estrellas;
+  final double precio;
+  final int capacidad;
+  final int estrellas;
   final String imagenUrl;
 
   Lugar({
     required this.direccion,
     required this.coordenadas,
     required this.precio,
+    required this.capacidad,
     required this.estrellas,
     required this.imagenUrl,
   });
@@ -38,8 +40,19 @@ class Lugar {
         (map['latitud'] as num).toDouble(),
         (map['longitud'] as num).toDouble(),
       ),
-      precio: map['precio'] ?? '',
-      estrellas: map['estrllas'] ?? '',
+      precio:
+          double.tryParse(
+            map['precio'].toString().replaceAll(RegExp(r'[^0-9\\.]'), ''),
+          ) ??
+          0.0,
+      capacidad:
+          map['capacidad'] is int
+              ? map['capacidad']
+              : int.tryParse(map['capacidad']?.toString() ?? '') ?? 0,
+      estrellas:
+          map['estrellas'] is int
+              ? map['estrellas']
+              : int.tryParse(map['estrellas']?.toString() ?? '') ?? 5,
       imagenUrl: map['image'] ?? '',
     );
   }
@@ -210,6 +223,7 @@ class _HomePageState extends State<HomePage> {
           'direccion': lugar.direccion,
           'coordenadas': lugar.coordenadas,
           'precio': lugar.precio,
+          'capacidad': lugar.capacidad,
           'estrellas': lugar.estrellas,
           'imagen': lugar.imagenUrl,
         });
@@ -254,14 +268,36 @@ class _HomePageState extends State<HomePage> {
         final List<dynamic> data = responseData['data'];
 
         return data.map<Lugar>((lugarJson) {
-          return Lugar.fromMap({
-            'direccion': lugarJson['address'] ?? 'Dirección no disponible',
-            'latitud': double.parse(lugarJson['latitude'].toString()),
-            'longitud': double.parse(lugarJson['longitude'].toString()),
-            'precio': '\$${lugarJson['hourly_rate']}/hr',
-            'estrllas': lugarJson['average_rating'].toString(),
-            'image': lugarJson['image'] ?? '',
-          });
+          return Lugar(
+            direccion: lugarJson['address'] ?? 'Dirección no disponible',
+            coordenadas: LatLng(
+              double.parse(lugarJson['latitude'].toString()),
+              double.parse(lugarJson['longitude'].toString()),
+            ),
+            precio:
+                double.tryParse(
+                  lugarJson['hourly_rate'].toString().replaceAll(
+                    RegExp(r'[^0-9\\.]'),
+                    '',
+                  ),
+                ) ??
+                0.0,
+            capacidad:
+                lugarJson['total_spaces'] is int
+                    ? lugarJson['total_spaces']
+                    : int.tryParse(
+                          lugarJson['total_spaces']?.toString() ?? '',
+                        ) ??
+                        0,
+            estrellas:
+                lugarJson['average_rating'] is int
+                    ? lugarJson['average_rating']
+                    : int.tryParse(
+                          lugarJson['average_rating']?.toString() ?? '',
+                        ) ??
+                        5,
+            imagenUrl: lugarJson['image'] ?? '',
+          );
         }).toList();
       } else {
         throw Exception('Respuesta inválida del servidor');
@@ -324,7 +360,14 @@ class _HomePageState extends State<HomePage> {
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
-                              selectedPlace = place;
+                              selectedPlace = {
+                                'direccion': place['direccion'],
+                                'coordenadas': place['coordenadas'],
+                                'precio': place['precio'],
+                                'capacidad': place['capacidad'],
+                                'estrellas': place['estrellas'],
+                                'imagen': place['imagen'],
+                              };
                             });
                           },
                           child: Column(
