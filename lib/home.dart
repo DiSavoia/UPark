@@ -347,8 +347,18 @@ class _HomePageState extends State<HomePage> {
                     if (place['coordenadas'] != null)
                       Marker(
                         point: place['coordenadas'] as LatLng,
-                        width: 50,
-                        height: 60,
+                        width:
+                            (selectedPlace != null &&
+                                    selectedPlace!['coordenadas'] ==
+                                        place['coordenadas'])
+                                ? 60
+                                : 50,
+                        height:
+                            (selectedPlace != null &&
+                                    selectedPlace!['coordenadas'] ==
+                                        place['coordenadas'])
+                                ? 70
+                                : 60,
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
@@ -366,14 +376,43 @@ class _HomePageState extends State<HomePage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Container(
-                                width: 40,
-                                height: 40,
+                                width:
+                                    (selectedPlace != null &&
+                                            selectedPlace!['coordenadas'] ==
+                                                place['coordenadas'])
+                                        ? 50
+                                        : 40,
+                                height:
+                                    (selectedPlace != null &&
+                                            selectedPlace!['coordenadas'] ==
+                                                place['coordenadas'])
+                                        ? 50
+                                        : 40,
                                 decoration: BoxDecoration(
-                                  color: Colors.blue,
+                                  color:
+                                      (selectedPlace != null &&
+                                              selectedPlace!['coordenadas'] ==
+                                                  place['coordenadas'])
+                                          ? Colors.orange
+                                          : Colors.blue,
                                   shape: BoxShape.circle,
+                                  border:
+                                      (selectedPlace != null &&
+                                              selectedPlace!['coordenadas'] ==
+                                                  place['coordenadas'])
+                                          ? Border.all(
+                                            color: Colors.deepOrange,
+                                            width: 4,
+                                          )
+                                          : null,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.blue.withOpacity(0.3),
+                                      color:
+                                          (selectedPlace != null &&
+                                                  selectedPlace!['coordenadas'] ==
+                                                      place['coordenadas'])
+                                              ? Colors.orange.withOpacity(0.3)
+                                              : Colors.blue.withOpacity(0.3),
                                       spreadRadius: 2,
                                       blurRadius: 4,
                                       offset: Offset(0, 2),
@@ -383,7 +422,12 @@ class _HomePageState extends State<HomePage> {
                                 child: Icon(
                                   Icons.local_parking,
                                   color: Colors.white,
-                                  size: 24,
+                                  size:
+                                      (selectedPlace != null &&
+                                              selectedPlace!['coordenadas'] ==
+                                                  place['coordenadas'])
+                                          ? 30
+                                          : 24,
                                 ),
                               ),
                               CustomPaint(
