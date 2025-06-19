@@ -559,10 +559,21 @@ class _HomePageState extends State<HomePage> {
                           Center(
                             child: ElevatedButton(
                               onPressed: () {
+                                final moreInfoArgs = {
+                                  ...selectedPlace!,
+                                  'user_id': userId,
+                                  'username': username,
+                                  'email': email,
+                                  'phone': phone,
+                                  'is_manager': isManager,
+                                };
+                                print(
+                                  'Navigating to moreInfo with args: $moreInfoArgs',
+                                );
                                 Navigator.pushNamed(
                                   context,
                                   '/moreInfo',
-                                  arguments: selectedPlace,
+                                  arguments: moreInfoArgs,
                                 );
                               },
                               child: const Text("Más información"),
@@ -630,6 +641,13 @@ class _HomePageState extends State<HomePage> {
                         final result = await Navigator.pushNamed(
                           context,
                           '/search',
+                          arguments: {
+                            'id': userId,
+                            'username': username,
+                            'email': email,
+                            'phone': phone,
+                            'is_manager': isManager,
+                          },
                         );
                         if (result != null && result is Map<String, dynamic>) {
                           setState(() {
@@ -661,7 +679,17 @@ class _HomePageState extends State<HomePage> {
                             },
                           );
                         } else {
-                          Navigator.pushNamed(context, '/favorites');
+                          Navigator.pushNamed(
+                            context,
+                            '/favorites',
+                            arguments: {
+                              'id': userId,
+                              'username': username,
+                              'email': email,
+                              'phone': phone,
+                              'is_manager': isManager,
+                            },
+                          );
                         }
                       },
                     ),

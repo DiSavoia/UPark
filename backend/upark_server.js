@@ -423,6 +423,99 @@ app.delete("/api/reviews/:id", async (req, res) => {
   }
 });
 
+// -- FAVORITES CRUD --
+
+// Get user's favorite parkings
+app.get("/api/users/:userId/favorites", async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+        p.*,
+        COALESCE(ROUND(AVG(r.rating), 1), 5.0) as average_rating,
+        COUNT(r.id) as review_count,
+        f.created_at as favorited_at
+      FROM favorites f
+      JOIN parkings p ON f.parking_id = p.id
+      LEFT JOIN review r ON p.id = r.parking_id
+      WHERE f.user_id = $1 AND p.is_active = true
+      GROUP BY p.id, f.created_at
+      ORDER BY f.created_at DESC
+    `,
+      [userId]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Internal server error" });
+  }
+});
+
+// Add parking to favorites
+app.post("/api/favorites", async (req, res) => {
+  const { user_id, parking_id } = req.body;
+  const query = `
+    INSERT INTO favorites (user_id, parking_id)
+    VALUES ($1, $2)
+    RETURNING *
+  `;
+  const values = [user_id, parking_id];
+  try {
+    const result = await pool.query(query, values);
+    res.status(201).json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    if (err.code === "23505") {
+      // unique_violation - already favorited
+      res.status(400).json({
+        success: false,
+        error: "Parking already in favorites",
+      });
+    } else {
+      res.status(500).json({ success: false, error: "Internal server error" });
+    }
+  }
+});
+
+// Remove parking from favorites
+app.delete("/api/favorites", async (req, res) => {
+  const { user_id, parking_id } = req.body;
+  try {
+    const result = await pool.query(
+      "DELETE FROM favorites WHERE user_id = $1 AND parking_id = $2 RETURNING *",
+      [user_id, parking_id]
+    );
+    if (result.rows.length === 0)
+      return res.status(404).json({
+        success: false,
+        error: "Favorite not found",
+      });
+    res.json({ success: true, message: "Removed from favorites" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Internal server error" });
+  }
+});
+
+// Check if parking is favorited by user
+app.get("/api/favorites/check", async (req, res) => {
+  const { user_id, parking_id } = req.query;
+  try {
+    const result = await pool.query(
+      "SELECT id FROM favorites WHERE user_id = $1 AND parking_id = $2",
+      [user_id, parking_id]
+    );
+    res.json({
+      success: true,
+      is_favorited: result.rows.length > 0,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Internal server error" });
+  }
+});
+
 // Password change endpoint
 app.post("/api/change-password", async (req, res) => {
   const { email, newPassword } = req.body;

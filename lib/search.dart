@@ -16,6 +16,7 @@ class SearchPageState extends State<SearchPage> {
   List<dynamic> _allParkings = [];
   List<dynamic> _filteredParkings = [];
   bool _isLoading = false;
+  int? userId;
 
   static const String apiBaseUrl = 'http://18.218.68.253/api';
 
@@ -27,6 +28,13 @@ class SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        userId = args['id'];
+      }
+    });
     _loadAllParkings();
   }
 
