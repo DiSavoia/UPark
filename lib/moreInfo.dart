@@ -32,8 +32,10 @@ class _MoreInfoState extends State<MoreInfo> {
     print('MoreInfo received args: $args');
     if (args != null) {
       userId = args['user_id'];
-      parkingId = args['id'];
+      // Try different possible field names for parking ID
+      parkingId = args['id'] ?? args['parking_id'] ?? args['parkingId'];
       print('User ID: $userId, Parking ID: $parkingId');
+      print('Available keys in args: ${args.keys.toList()}');
       _checkIfFavorited();
     }
   }
@@ -244,12 +246,25 @@ class _MoreInfoState extends State<MoreInfo> {
                 top: 10,
                 right: 10,
                 child: GestureDetector(
-                  onTap: _isLoading ? null : _toggleFavorite,
+                  onTap:
+                      _isLoading
+                          ? null
+                          : () {
+                            print('Heart button tapped!');
+                            _toggleFavorite();
+                          },
                   child: Container(
-                    padding: EdgeInsets.all(4),
+                    padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withOpacity(0.9),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child:
                         _isLoading
@@ -268,7 +283,7 @@ class _MoreInfoState extends State<MoreInfo> {
                                   ? Icons.favorite
                                   : Icons.favorite_border,
                               color: Colors.red,
-                              size: 24,
+                              size: 28,
                             ),
                   ),
                 ),

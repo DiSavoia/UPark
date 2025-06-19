@@ -23,6 +23,9 @@ class Lugar {
   final int capacidad;
   final int estrellas;
   final String imagenUrl;
+  final int id;
+  final String nombre;
+  final String descripcion;
 
   Lugar({
     required this.direccion,
@@ -31,6 +34,9 @@ class Lugar {
     required this.capacidad,
     required this.estrellas,
     required this.imagenUrl,
+    required this.id,
+    required this.nombre,
+    required this.descripcion,
   });
 
   factory Lugar.fromMap(Map<String, dynamic> map) {
@@ -54,6 +60,9 @@ class Lugar {
               ? map['estrellas']
               : int.tryParse(map['estrellas']?.toString() ?? '') ?? 5,
       imagenUrl: map['image'] ?? '',
+      id: map['id'] ?? 0,
+      nombre: map['name'] ?? '',
+      descripcion: map['description'] ?? '',
     );
   }
 }
@@ -226,6 +235,12 @@ class _HomePageState extends State<HomePage> {
           'capacidad': lugar.capacidad,
           'estrellas': lugar.estrellas,
           'imagen': lugar.imagenUrl,
+          'id': lugar.id,
+          'name': lugar.nombre,
+          'address': lugar.direccion,
+          'description': lugar.descripcion,
+          'hourly_rate': lugar.precio,
+          'total_spaces': lugar.capacidad,
         });
       }
 
@@ -297,6 +312,9 @@ class _HomePageState extends State<HomePage> {
                         ) ??
                         5,
             imagenUrl: lugarJson['image'] ?? '',
+            id: lugarJson['id'] ?? 0,
+            nombre: lugarJson['name'] ?? '',
+            descripcion: lugarJson['description'] ?? '',
           );
         }).toList();
       } else {
@@ -369,6 +387,12 @@ class _HomePageState extends State<HomePage> {
                                 'capacidad': place['capacidad'],
                                 'estrellas': place['estrellas'],
                                 'imagen': place['imagen'],
+                                'id': place['id'],
+                                'name': place['name'],
+                                'address': place['address'],
+                                'description': place['description'],
+                                'hourly_rate': place['hourly_rate'],
+                                'total_spaces': place['total_spaces'],
                               };
                             });
                           },
