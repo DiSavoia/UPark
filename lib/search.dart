@@ -244,8 +244,17 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildParkingCard(dynamic parking) {
-    final rating = parking['average_rating'] ?? 5.0;
-    final reviewCount = parking['review_count'] ?? 0;
+    final ratingValue = parking['average_rating'];
+    final rating =
+        ratingValue is num
+            ? ratingValue.toStringAsFixed(1)
+            : double.tryParse(ratingValue.toString())?.toStringAsFixed(1) ??
+                '5.0';
+    final reviewCountValue = parking['review_count'] ?? 0;
+    final reviewCount =
+        reviewCountValue is int
+            ? reviewCountValue
+            : int.tryParse(reviewCountValue.toString()) ?? 0;
     final price = parking['hourly_rate']?.toString() ?? 'N/A';
     final address = parking['address'] ?? 'Sin dirección';
     final name = parking['name'] ?? 'Sin nombre';
@@ -295,7 +304,7 @@ class SearchPageState extends State<SearchPage> {
                       Row(
                         children: [
                           Text(
-                            rating.toStringAsFixed(1),
+                            rating,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
