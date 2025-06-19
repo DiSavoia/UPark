@@ -649,7 +649,17 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.black,
                       onPressed: () {
                         if (isManager) {
-                          // Navigate to edit page or perform edit action
+                          Navigator.pushNamed(
+                            context,
+                            '/createParking',
+                            arguments: {
+                              'id': userId,
+                              'username': username,
+                              'email': email,
+                              'phone': phone,
+                              'is_manager': isManager,
+                            },
+                          );
                         } else {
                           Navigator.pushNamed(context, '/favorites');
                         }

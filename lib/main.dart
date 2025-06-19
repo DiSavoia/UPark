@@ -11,6 +11,7 @@ import 'favorites.dart';
 import 'profile.dart';
 import 'reviews.dart';
 import 'moreInfo.dart';
+import 'createParking.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfilePage(),
         '/reviews': (context) => const Reviews(),
         '/moreInfo': (context) => const MoreInfo(),
+        '/createParking': (context) => const CreateParkingPage(),
       },
     );
   }
