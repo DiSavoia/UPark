@@ -138,8 +138,19 @@ class SearchPageState extends State<SearchPage> {
             parking['address'] ?? parking['name'] ?? 'Unknown location',
         'precio': precio,
         'capacidad': capacidad,
-        'estrellas': 5, // default
-        'imagen': null,
+        'estrellas':
+            parking['average_rating'] != null
+                ? (parking['average_rating'] is int
+                    ? parking['average_rating']
+                    : int.tryParse(parking['average_rating'].toString()) ?? 5)
+                : 5,
+        'imagen': parking['image'],
+        'name': parking['name'],
+        'address': parking['address'],
+        'description': parking['description'],
+        'hourly_rate': parking['hourly_rate'],
+        'total_spaces': parking['total_spaces'],
+        'id': parking['id'],
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -626,8 +626,19 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.search),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/search');
+                      onPressed: () async {
+                        final result = await Navigator.pushNamed(
+                          context,
+                          '/search',
+                        );
+                        if (result != null && result is Map<String, dynamic>) {
+                          setState(() {
+                            selectedPlace = result;
+                          });
+                          if (result['coordenadas'] != null) {
+                            mapController.move(result['coordenadas'], 15);
+                          }
+                        }
                       },
                     ),
                     IconButton(
