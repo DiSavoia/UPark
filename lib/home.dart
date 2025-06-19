@@ -669,7 +669,17 @@ class _HomePageState extends State<HomePage> {
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
-                        Navigator.pushNamed(context, '/profile');
+                        Navigator.pushNamed(
+                          context,
+                          '/profile',
+                          arguments: {
+                            'username': username,
+                            'email': email,
+                            'phone': phone,
+                            'id': userId,
+                            'is_manager': isManager,
+                          },
+                        );
                       },
                     ),
                   ],
