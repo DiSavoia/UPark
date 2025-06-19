@@ -341,6 +341,61 @@ class _HomePageState extends State<HomePage> {
                   markerDirection: MarkerDirection.heading,
                 ),
               ),
+              MarkerLayer(
+                markers: [
+                  for (var place in nearbyPlaces)
+                    if (place['coordenadas'] != null)
+                      Marker(
+                        point: place['coordenadas'] as LatLng,
+                        width: 50,
+                        height: 60,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedPlace = {
+                                'direccion': place['direccion'],
+                                'coordenadas': place['coordenadas'],
+                                'precio': place['precio'],
+                                'capacidad': place['capacidad'],
+                                'estrellas': place['estrellas'],
+                                'imagen': place['imagen'],
+                              };
+                            });
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blue.withOpacity(0.3),
+                                      spreadRadius: 2,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.local_parking,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              CustomPaint(
+                                size: Size(10, 10),
+                                painter: ArrowPainter(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                ],
+              ),
             ],
           ),
 
@@ -362,6 +417,153 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+
+          // Parking info menu
+          if (selectedPlace != null)
+            Positioned(
+              bottom: 140,
+              left: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  selectedPlace!['direccion'] ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedPlace = null;
+                                  });
+                                },
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 24,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.attach_money,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                selectedPlace!['precio'] != null
+                                    ? selectedPlace!['precio'].toString()
+                                    : 'N/A',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.local_parking,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                selectedPlace!['capacidad'] != null
+                                    ? selectedPlace!['capacidad'].toString()
+                                    : 'N/A',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/moreInfo',
+                                  arguments: selectedPlace,
+                                );
+                              },
+                              child: const Text("Más información"),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Stars badge
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              (selectedPlace!['estrellas'] ?? '5').toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Bottom bar
           Align(

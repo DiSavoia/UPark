@@ -6,14 +6,38 @@ class MoreInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final parking =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (parking == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Más Información')),
+        body: Center(child: Text('No hay datos del estacionamiento')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 20)),
-              Text('Mas Información', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
+              Text(
+                'UPARK',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                  fontSize: 20,
+                ),
+              ),
+              Text(
+                'Mas Información',
+                style: TextStyle(
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),
@@ -21,16 +45,12 @@ class MoreInfo extends StatelessWidget {
         elevation: 1,
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildParkingCard(context),
-          ],
-        ),
+        child: Column(children: [_buildParkingCard(context, parking)]),
       ),
     );
   }
 
-  Widget _buildParkingCard(BuildContext context) {
+  Widget _buildParkingCard(BuildContext context, Map<String, dynamic> parking) {
     return Card(
       margin: EdgeInsets.all(10),
       elevation: 4,
@@ -45,12 +65,20 @@ class MoreInfo extends StatelessWidget {
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
                 ),
-                child: Image.asset(
-                  'assets/estacionamiento.png',
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                child:
+                    parking['imagen'] != null && parking['imagen'] != ''
+                        ? Image.network(
+                          parking['imagen'],
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                        : Image.asset(
+                          'assets/estacionamiento.png',
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
               ),
               Positioned(
                 top: 10,
@@ -63,7 +91,10 @@ class MoreInfo extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Text('5', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        (parking['estrellas'] ?? '5').toString(),
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       Icon(Icons.star, color: Colors.amber, size: 16),
                     ],
                   ),
@@ -88,23 +119,17 @@ class MoreInfo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Nombre - Calle 123',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Text(
+                  '${parking['name'] ?? ''} - ${parking['address'] ?? parking['direccion'] ?? ''}',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () {},
                   icon: Icon(Icons.local_parking),
-                  label: Text('Cantidad de Plazas Disponibles: 1/50'),
+                  label: Text(
+                    'Cantidad de Plazas Disponibles: 1/${parking['total_spaces'] ?? parking['capacidad'] ?? ''}',
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -112,31 +137,20 @@ class MoreInfo extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 16),
+                if (parking['description'] != null &&
+                    parking['description'] != '')
+                  Text(parking['description'], style: TextStyle(fontSize: 16)),
+                SizedBox(height: 8),
                 Text(
-                  'Dueño: Nombre Apellido',
+                  'Precio por hora: \$${parking['hourly_rate'] ?? parking['precio'] ?? ''}',
                   style: TextStyle(fontSize: 16),
                 ),
+                SizedBox(height: 16),
+                Text('Dueño: Nombre Apellido', style: TextStyle(fontSize: 16)),
                 SizedBox(height: 8),
                 Text(
                   'Horario de atención: 7hs - 24hs',
                   style: TextStyle(fontSize: 16),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Precio:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('• 1hr: \$', style: TextStyle(fontSize: 16)),
-                      Text('• 6hs: \$500', style: TextStyle(fontSize: 16)),
-                      Text('• 24hs: \$1000', style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
                 ),
                 SizedBox(height: 16),
                 Text(
@@ -149,8 +163,14 @@ class MoreInfo extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('• Teléfono: 123-4789', style: TextStyle(fontSize: 16)),
-                      Text('• Whatsapp: 11-1234-6789', style: TextStyle(fontSize: 16)),
+                      Text(
+                        '• Teléfono: 123-4789',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      Text(
+                        '• Whatsapp: 11-1234-6789',
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ],
                   ),
                 ),
@@ -172,13 +192,18 @@ class MoreInfo extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const Reviews()),
+                          MaterialPageRoute(
+                            builder: (context) => const Reviews(),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -198,4 +223,4 @@ class MoreInfo extends StatelessWidget {
       ),
     );
   }
-} 
+}
