@@ -320,16 +320,13 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
+          // Mapa
           FlutterMap(
             mapController: mapController,
             options: MapOptions(
-              initialCenter: currentLocation ?? LatLng(-34.6037, -58.3816),
+              initialCenter:
+                  currentLocation ?? LatLng(-34.6037, -58.3816), // Buenos Aires
               initialZoom: 15,
-              onTap: (_, __) {
-                setState(() {
-                  selectedPlace = null;
-                });
-              },
             ),
             children: [
               TileLayer(
@@ -344,255 +341,10 @@ class _HomePageState extends State<HomePage> {
                   markerDirection: MarkerDirection.heading,
                 ),
               ),
-              MarkerLayer(
-                markers: [
-                  for (var place in nearbyPlaces)
-                    if (place['coordenadas'] != null &&
-                        (searchMarker == null ||
-                            (place['coordenadas'].latitude !=
-                                    searchMarker!.point.latitude ||
-                                place['coordenadas'].longitude !=
-                                    searchMarker!.point.longitude)))
-                      Marker(
-                        point: place['coordenadas'] as LatLng,
-                        width: 50,
-                        height: 60,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedPlace = {
-                                'direccion': place['direccion'],
-                                'coordenadas': place['coordenadas'],
-                                'precio': place['precio'],
-                                'capacidad': place['capacidad'],
-                                'estrellas': place['estrellas'],
-                                'imagen': place['imagen'],
-                              };
-                            });
-                          },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.blue,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.blue.withOpacity(0.3),
-                                      spreadRadius: 2,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  Icons.local_parking,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                              CustomPaint(
-                                size: Size(10, 10),
-                                painter: ArrowPainter(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  if (searchMarker != null) searchMarker!,
-                ],
-              ),
             ],
           ),
 
-          // Botón ubicación actual
-          Positioned(
-            bottom: 120,
-            right: 10,
-            child: SafeArea(
-              child: SizedBox(
-                height: 70,
-                width: 70,
-                child: FloatingActionButton(
-                  heroTag: "locationBtn",
-                  onPressed:
-                      currentLocation == null ? null : userCurrentLocation,
-                  backgroundColor: Colors.blue,
-                  elevation: 2,
-                  shape: const CircleBorder(),
-                  child: const Icon(
-                    Icons.my_location,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Barra media
-          if (selectedPlace != null)
-            Positioned(
-              bottom: 140,
-              left: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: 24,
-                      ), // para dejar espacio para las estrellas
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  selectedPlace!['direccion'] ?? '',
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedPlace = null;
-                                  });
-                                },
-                                child: const Icon(
-                                  Icons.close,
-                                  size: 24,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.attach_money,
-                                color: Colors.green,
-                                size: 20,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                selectedPlace!['precio'] != null
-                                    ? selectedPlace!['precio'].toString()
-                                    : 'N/A',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.local_parking,
-                                color: Colors.blue,
-                                size: 20,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                selectedPlace!['capacidad'] != null
-                                    ? selectedPlace!['capacidad'].toString()
-                                    : 'N/A',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (selectedPlace!['imagen'] != null &&
-                              selectedPlace!['imagen'] != '')
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                selectedPlace!['imagen'],
-                                height: 150,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder:
-                                    (context, error, stackTrace) =>
-                                        const Icon(Icons.broken_image),
-                              ),
-                            ),
-                          const SizedBox(height: 8),
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/moreInfo');
-                              },
-                              child: const Text("Más información"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Aquí agregamos la cantidad de estrellas en la esquina superior izquierda
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              (selectedPlace!['estrellas'] ?? '5').toString(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                              size: 16,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // Barra superior con logo
+          // Barra superior blanca con logo
           Positioned(
             top: 0,
             left: 0,
@@ -611,7 +363,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // Barra inferior con botones
+          // Bottom bar
           Align(
             alignment: Alignment.bottomCenter,
             child: BottomAppBar(
@@ -628,73 +380,40 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.search),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed: () async {
-                        final result = await Navigator.pushNamed(
-                          context,
-                          '/search',
-                        );
-                        if (result != null && result is Map<String, dynamic>) {
-                          final LatLng? coordenadas = result['coordenadas'];
-                          final String? direccion = result['direccion'];
-                          final int? distancia = result['distancia'];
-                          final double? precio = result['precio'];
-                          final int? estrellas = result['estrellas'];
-                          final int? capacidad = result['capacidad'];
-
-                          if (coordenadas != null) {
-                            mapController.move(coordenadas, 15);
-                            setState(() {
-                              selectedPlace = {
-                                'direccion': direccion,
-                                'coordenadas': coordenadas,
-                                'precio': precio,
-                                'estrellas': estrellas,
-                                'capacidad': capacidad,
-                                'imagen': null,
-                              };
-                            });
-                          }
-                        }
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/search');
                       },
                     ),
-
                     IconButton(
-                      icon: Icon(isManager ? Icons.people : Icons.favorite),
+                      icon: Icon(
+                        isManager ? Icons.edit : Icons.favorite_border,
+                      ),
                       iconSize: 30,
                       color: Colors.black,
                       onPressed: () {
                         if (isManager) {
-                          Navigator.pushNamed(context, '/usuarios');
+                          // Navigate to edit page or perform edit action
                         } else {
                           Navigator.pushNamed(context, '/favorites');
                         }
                       },
                     ),
-                    const SizedBox(
-                      width: 50,
-                    ), // espacio para el botón flotante central
+                    const SizedBox(width: 80), // espacio para FAB central
                     IconButton(
-                      icon: const Icon(Icons.message),
+                      icon: const Icon(Icons.settings),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed: () => Navigator.pushNamed(context, '/chat'),
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/settings');
+                      },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.person),
+                      icon: const Icon(Icons.person_outline),
                       iconSize: 30,
                       color: Colors.black,
-                      onPressed:
-                          () => Navigator.pushNamed(
-                            context,
-                            '/profile',
-                            arguments: {
-                              'id': userId,
-                              'username': username,
-                              'email': email,
-                              'phone': phone,
-                              'is_manager': isManager,
-                            },
-                          ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/profile');
+                      },
                     ),
                   ],
                 ),
@@ -702,23 +421,51 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // Botón flotante central
+          // Segundo botón flotante en esquina inferior derecha
           Positioned(
-            bottom: 35,
-            left: MediaQuery.of(context).size.width / 2 - 28,
-            child: FloatingActionButton(
-              heroTag: "floatingBtn",
-              onPressed: () {
-                // Acción para botón central
-              },
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.add, size: 32),
+            bottom: 120,
+            right: 10,
+            child: SafeArea(
+              child: SizedBox(
+                height: 70,
+                width: 70,
+                child: FloatingActionButton(
+                  heroTag: "locationFab",
+                  onPressed:
+                      currentLocation == null
+                          ? null
+                          : userCurrentLocation, // Solo habilitar si la ubicación está disponible
+                  backgroundColor: Colors.blue,
+                  elevation: 2,
+                  shape: const CircleBorder(),
+                  child: const Icon(
+                    Icons.my_location,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+              ),
             ),
           ),
-
-          if (isLoading) const Center(child: CircularProgressIndicator()),
         ],
       ),
+
+      // Primer botón flotante central
+      floatingActionButton: SizedBox(
+        height: 150,
+        width: 70,
+        child: FloatingActionButton(
+          heroTag: "centerFab",
+          onPressed: () {
+            // Acción del botón flotante central
+          },
+          backgroundColor: Colors.blue,
+          elevation: 2,
+          shape: const CircleBorder(),
+          child: const Icon(Icons.map, color: Colors.white),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
