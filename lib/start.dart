@@ -16,16 +16,10 @@ class StartPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                'assets/logo_upark_a.png',
-                height: 125,
-              ),
+              Image.asset('assets/logo_upark_a.png', height: 125),
               const Text(
                 '¡Bienvenido!',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 40),
               SizedBox(

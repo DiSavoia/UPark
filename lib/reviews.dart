@@ -11,8 +11,22 @@ class Reviews extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('UPARK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 20)),
-              Text('Reviews', style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black, fontSize: 16)),
+              Text(
+                'UPARK',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                  fontSize: 20,
+                ),
+              ),
+              Text(
+                'Reviews',
+                style: TextStyle(
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),
@@ -20,12 +34,7 @@ class Reviews extends StatelessWidget {
         elevation: 1,
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildParkingHeader(),
-            _buildReviewsList(),
-          ],
-        ),
+        child: Column(children: [_buildParkingHeader(), _buildReviewsList()]),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
@@ -93,10 +102,7 @@ class Reviews extends StatelessWidget {
             padding: EdgeInsets.all(12),
             child: Text(
               'Nombre - Calle 123',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -105,12 +111,7 @@ class Reviews extends StatelessWidget {
   }
 
   Widget _buildReviewsList() {
-    return Column(
-      children: [
-        _buildReviewCard(),
-        _buildReviewCard(),
-      ],
-    );
+    return Column(children: [_buildReviewCard(), _buildReviewCard()]);
   }
 
   Widget _buildReviewCard() {
@@ -130,15 +131,14 @@ class Reviews extends StatelessWidget {
               ),
             ),
             SizedBox(height: 10),
-            Text(
-              'Review body',
-              style: TextStyle(fontSize: 16),
-            ),
+            Text('Review body', style: TextStyle(fontSize: 16)),
             SizedBox(height: 16),
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: NetworkImage('https://randomuser.me/api/portraits/women/17.jpg'),
+                  backgroundImage: NetworkImage(
+                    'https://randomuser.me/api/portraits/women/17.jpg',
+                  ),
                   radius: 20,
                 ),
                 SizedBox(width: 10),
@@ -149,10 +149,7 @@ class Reviews extends StatelessWidget {
                       'Reviewer name',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text(
-                      'Date',
-                      style: TextStyle(color: Colors.grey),
-                    ),
+                    Text('Date', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
               ],
@@ -162,4 +159,4 @@ class Reviews extends StatelessWidget {
       ),
     );
   }
-} 
+}
